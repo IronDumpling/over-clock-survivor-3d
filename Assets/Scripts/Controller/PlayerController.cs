@@ -22,9 +22,6 @@ public class PlayerController : MonoBehaviour
     private InputAction push;
     private InputAction look;
 
-    [SerializeField]
-    private Camera playerCamera;
-
     #region Life Cycle
 
     private void Start()
@@ -36,15 +33,15 @@ public class PlayerController : MonoBehaviour
 
     private void LoadModel()
     {
-        playerModel = new Player();
-
         if (playerConfigure == null) return;
-        // load player SO configuration into model
+        // load player SO configuration into model in the constructor
+        playerModel = new Player();
     }
 
     private void LoadView()
     {
         playerAni = gameObject.GetComponent<Animator>();
+        if (playerAni == null) Debug.LogWarning("Player Animator Controller Missing!");
     }
 
     private void LoadInput()
@@ -68,6 +65,9 @@ public class PlayerController : MonoBehaviour
 
         if (playerInput == null) return;
         jump.started += DoJump;
+        move.started += DoMove;
+        dash.started += DoDash;
+        push.started += DoPush;
 
         playerInput.Player.Enable();
     }
@@ -82,7 +82,10 @@ public class PlayerController : MonoBehaviour
         playerModel.freq.Changed -= OnFreqChanged;
 
         if (playerInput == null) return;
-        playerInput.Player.Jump.started -= DoJump;
+        jump.started -= DoJump;
+        move.started -= DoMove;
+        dash.started -= DoDash;
+        push.started -= DoPush;
 
         playerInput.Player.Disable();
     }
@@ -235,6 +238,17 @@ public class PlayerController : MonoBehaviour
 
     #region Input
 
+    private void DoMove(InputAction.CallbackContext context)
+    {
+        float x = move.ReadValue<Vector2>().x;
+        float y = move.ReadValue<Vector2>().y;
+    }
+
+    private void DoDash(InputAction.CallbackContext context)
+    {
+        throw new NotImplementedException();
+    }
+
     private void DoJump(InputAction.CallbackContext context)
     {
         if (IsGrounded(0.3f))
@@ -249,6 +263,11 @@ public class PlayerController : MonoBehaviour
         if (Physics.Raycast(ray, out _, rayLength))
             return true;
         return false;
+    }
+
+    private void DoPush(InputAction.CallbackContext context)
+    {
+        throw new NotImplementedException();
     }
 
     #endregion

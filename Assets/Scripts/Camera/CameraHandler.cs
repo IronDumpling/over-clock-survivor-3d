@@ -2,17 +2,24 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class CameraHandler : MonoBehaviour
+public class CameraHandler : MonoSingleton<CameraHandler>
 {
-    // Start is called before the first frame update
-    void Start()
+    private Vector3 GetCameraForward(Camera playerCamera)
     {
-        
+        Vector3 forward = playerCamera.transform.forward;
+        forward.y = 0;
+        return forward.normalized;
     }
 
-    // Update is called once per frame
-    void Update()
+    private Vector3 GetCameraRight(Camera playerCamera)
     {
-        
+        Vector3 right = playerCamera.transform.right;
+        right.y = 0;
+        return right.normalized;
+    }
+
+    private void LookAt()
+    {
+
     }
 }
