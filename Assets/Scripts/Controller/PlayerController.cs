@@ -1,6 +1,8 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.InputSystem;
 
 public class PlayerController : MonoBehaviour
 {
@@ -12,28 +14,31 @@ public class PlayerController : MonoBehaviour
     [Header("View")]
     private Animator playerAni;
 
+    [Header("Input")]
+    private InputHandler playerInput;
+    private InputAction move;
+    private InputAction jump;
+    private InputAction dash;
+    private InputAction push;
+    private InputAction look;
+
+    [SerializeField]
+    private Camera playerCamera;
+
     #region Life Cycle
 
     private void Start()
     {
         LoadModel();
         LoadView();
+        LoadInput();
     }
 
     private void LoadModel()
     {
         playerModel = new Player();
 
-        if (playerModel == null) return;
-
-        playerModel.level.Changed += OnLevelChanged;
-        playerModel.health.Changed += OnHealthChanged;
-        playerModel.speed.Changed += OnSpeedChanged;
-        playerModel.energy.Changed += OnEnergyChanged;
-        playerModel.freq.Changed += OnFreqChanged;
-
         if (playerConfigure == null) return;
-
         // load player SO configuration into model
     }
 
@@ -42,7 +47,32 @@ public class PlayerController : MonoBehaviour
         playerAni = gameObject.GetComponent<Animator>();
     }
 
-    private void OnDestroy()
+    private void LoadInput()
+    {
+        playerInput = new InputHandler();
+        move = playerInput.Player.Move;
+        jump = playerInput.Player.Jump;
+        dash = playerInput.Player.Dash;
+        push = playerInput.Player.Push;
+        look = playerInput.Player.Look;
+    }
+
+    private void OnEnable()
+    {
+        if (playerModel == null) return;
+        playerModel.level.Changed += OnLevelChanged;
+        playerModel.health.Changed += OnHealthChanged;
+        playerModel.speed.Changed += OnSpeedChanged;
+        playerModel.energy.Changed += OnEnergyChanged;
+        playerModel.freq.Changed += OnFreqChanged;
+
+        if (playerInput == null) return;
+        jump.started += DoJump;
+
+        playerInput.Player.Enable();
+    }
+
+    private void OnDisable()
     {
         if (playerModel == null) return;
         playerModel.level.Changed -= OnLevelChanged;
@@ -50,9 +80,16 @@ public class PlayerController : MonoBehaviour
         playerModel.speed.Changed -= OnSpeedChanged;
         playerModel.energy.Changed -= OnEnergyChanged;
         playerModel.freq.Changed -= OnFreqChanged;
+
+        if (playerInput == null) return;
+        playerInput.Player.Jump.started -= DoJump;
+
+        playerInput.Player.Disable();
     }
 
     #endregion
+
+    #region Model
 
     #region Level
 
@@ -191,6 +228,32 @@ public class PlayerController : MonoBehaviour
     {
         UpdateFreqView();
     }
+
+    #endregion
+
+    #endregion
+
+    #region Input
+
+    private void DoJump(InputAction.CallbackContext context)
+    {
+        if (IsGrounded(0.3f))
+        {
+
+        }
+    }
+
+    private bool IsGrounded(float rayLength)
+    {
+        Ray ray = new(this.transform.position + Vector3.up * rayLength, Vector3.down);
+        if (Physics.Raycast(ray, out _, rayLength))
+            return true;
+        return false;
+    }
+
+    #endregion
+
+    #region View
 
     #endregion
 }
