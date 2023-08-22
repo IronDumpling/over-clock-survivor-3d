@@ -263,13 +263,9 @@ public class PlayerController : MonoBehaviour
     private void DoJump(InputAction.CallbackContext context)
     {
         playerModel.speed.Curr += (int)(playerModel.speed.Gravity *
-                                        playerModel.speed.GravityScale *
-                                        Time.deltaTime);
+                                        playerModel.speed.GravityScale * Time.deltaTime);
 
-        if (IsGrounded(0.3f))
-        {
-            playerModel.speed.Curr = 10;
-        }
+        if (IsGrounded(0.3f)) playerModel.speed.Curr = 10;
 
         transform.Translate(new Vector3(0, playerModel.speed.Curr, 0) * Time.deltaTime);
     }
