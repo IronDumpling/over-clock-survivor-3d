@@ -8,7 +8,7 @@ public class PlayerController : MonoBehaviour
 {
     [Header("Model")]
     [SerializeField]
-    private PlayerSO playerConfigure;
+    private PlayerSO playerConfig;
     private Player playerModel;
 
     [Header("View")]
@@ -33,9 +33,8 @@ public class PlayerController : MonoBehaviour
 
     private void LoadModel()
     {
-        if (playerConfigure == null) return;
-        // load player SO configuration into model in the constructor
-        playerModel = new Player();
+        if (playerConfig == null) playerModel = new Player();
+        else playerModel = new Player(playerConfig);
     }
 
     private void LoadView()
@@ -240,26 +239,44 @@ public class PlayerController : MonoBehaviour
 
     private void DoMove(InputAction.CallbackContext context)
     {
-        float x = move.ReadValue<Vector2>().x;
-        float y = move.ReadValue<Vector2>().y;
+        Vector2 inputDirect = move.ReadValue<Vector2>();
+        Vector3 forward = CameraHandler.Instance.GetCameraForward() * inputDirect.y;
+        Vector3 horizontal = CameraHandler.Instance.GetCameraRight() * inputDirect.x;
+        Vector3 movement = Vector3.ClampMagnitude(forward + horizontal, 1);
+        transform.Translate(playerModel.speed.Curr * Time.deltaTime * movement, Space.World);
+        CameraHandler.Instance.LookAt();
     }
 
     private void DoDash(InputAction.CallbackContext context)
     {
-        throw new NotImplementedException();
+        Vector2 inputDirect = move.ReadValue<Vector2>();
+        Vector3 forward = CameraHandler.Instance.GetCameraForward() * inputDirect.y;
+        Vector3 horizontal = CameraHandler.Instance.GetCameraRight() * inputDirect.x;
+        Vector3 movement = Vector3.ClampMagnitude(forward + horizontal, 1);
+
+        playerModel.speed.Maximise();
+        transform.Translate(playerModel.speed.Curr * Time.deltaTime * movement, Space.World);
+
+        CameraHandler.Instance.LookAt();
     }
 
     private void DoJump(InputAction.CallbackContext context)
     {
+        playerModel.speed.Curr += (int)(playerModel.speed.Gravity *
+                                        playerModel.speed.GravityScale *
+                                        Time.deltaTime);
+
         if (IsGrounded(0.3f))
         {
-
+            playerModel.speed.Curr = 10;
         }
+
+        transform.Translate(new Vector3(0, playerModel.speed.Curr, 0) * Time.deltaTime);
     }
 
     private bool IsGrounded(float rayLength)
     {
-        Ray ray = new(this.transform.position + Vector3.up * rayLength, Vector3.down);
+        Ray ray = new(transform.position + Vector3.up * rayLength, Vector3.down);
         if (Physics.Raycast(ray, out _, rayLength))
             return true;
         return false;

@@ -41,9 +41,6 @@ public class GeneralData
         Update();
     }
 
-    /// <summary>
-    /// Invokes the event
-    /// </summary>
     public void Update()
     {
         Changed.Invoke();
