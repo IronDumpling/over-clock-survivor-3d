@@ -51,6 +51,7 @@ public class PlayerController : MonoBehaviour
         dash = playerInput.Player.Dash;
         push = playerInput.Player.Push;
         look = playerInput.Player.Look;
+        Debug.Log("Load Input");
     }
 
     private void OnEnable()
@@ -62,6 +63,8 @@ public class PlayerController : MonoBehaviour
         playerModel.energy.Changed += OnEnergyChanged;
         playerModel.freq.Changed += OnFreqChanged;
 
+        Debug.Log("Subscribe Data Events");
+
         if (playerInput == null) return;
         jump.started += DoJump;
         move.started += DoMove;
@@ -69,6 +72,8 @@ public class PlayerController : MonoBehaviour
         push.started += DoPush;
 
         playerInput.Player.Enable();
+
+        Debug.Log("Subscribe Input Events");
     }
 
     private void OnDisable()
