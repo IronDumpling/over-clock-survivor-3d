@@ -29,6 +29,8 @@ public class PlayerController : MonoBehaviour
         LoadModel();
         LoadView();
         LoadInput();
+        SubscribeDataEvents();
+        SubscribeInputEvents();
     }
 
     private void LoadModel()
@@ -56,6 +58,24 @@ public class PlayerController : MonoBehaviour
 
     private void OnEnable()
     {
+        SubscribeDataEvents();
+        SubscribeInputEvents();
+    }
+
+    private void SubscribeInputEvents()
+    {
+        if (playerInput == null) return;
+        jump.started += DoJump;
+        move.started += DoMove;
+        dash.started += DoDash;
+        push.started += DoPush;
+        playerInput.Player.Enable();
+
+        Debug.Log("Subscribe Input Events");
+    }
+
+    private void SubscribeDataEvents()
+    {
         if (playerModel == null) return;
         playerModel.level.Changed += OnLevelChanged;
         playerModel.health.Changed += OnHealthChanged;
@@ -64,16 +84,6 @@ public class PlayerController : MonoBehaviour
         playerModel.freq.Changed += OnFreqChanged;
 
         Debug.Log("Subscribe Data Events");
-
-        if (playerInput == null) return;
-        jump.started += DoJump;
-        move.started += DoMove;
-        dash.started += DoDash;
-        push.started += DoPush;
-
-        playerInput.Player.Enable();
-
-        Debug.Log("Subscribe Input Events");
     }
 
     private void OnDisable()
@@ -250,6 +260,8 @@ public class PlayerController : MonoBehaviour
         Vector3 movement = Vector3.ClampMagnitude(forward + horizontal, 1);
         transform.Translate(playerModel.speed.Curr * Time.deltaTime * movement, Space.World);
         CameraHandler.Instance.LookAt();
+
+        Debug.Log("Move!");
     }
 
     private void DoDash(InputAction.CallbackContext context)
@@ -263,6 +275,8 @@ public class PlayerController : MonoBehaviour
         transform.Translate(playerModel.speed.Curr * Time.deltaTime * movement, Space.World);
 
         CameraHandler.Instance.LookAt();
+
+        Debug.Log("Dash!");
     }
 
     private void DoJump(InputAction.CallbackContext context)
@@ -273,6 +287,8 @@ public class PlayerController : MonoBehaviour
         if (IsGrounded(0.3f)) playerModel.speed.Curr = 10;
 
         transform.Translate(new Vector3(0, playerModel.speed.Curr, 0) * Time.deltaTime);
+
+        Debug.Log("Jump!");
     }
 
     private bool IsGrounded(float rayLength)
@@ -285,7 +301,7 @@ public class PlayerController : MonoBehaviour
 
     private void DoPush(InputAction.CallbackContext context)
     {
-        throw new NotImplementedException();
+        Debug.Log("Push!");
     }
 
     #endregion
