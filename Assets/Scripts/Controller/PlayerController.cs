@@ -7,16 +7,13 @@ using UnityEngine.InputSystem;
 public class PlayerController : MonoBehaviour
 {
     [Header("Model")]
-    [SerializeField]
-    private PlayerSO playerConfig;
     private Player playerModel;
 
     [Header("View")]
-    private Animator playerAni;
 
     [Header("Input")]
     private InputHandler playerInput;
-    private InputAction move;
+    private InputAction run;
     private InputAction jump;
     private InputAction dash;
     private InputAction push;
@@ -27,7 +24,6 @@ public class PlayerController : MonoBehaviour
     private void Start()
     {
         LoadModel();
-        LoadView();
         LoadInput();
         SubscribeDataEvents();
         SubscribeInputEvents();
@@ -35,7 +31,7 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
-        if (move.IsPressed()) DoMove();
+        if (run.IsPressed()) DoRun();
     }
 
     private void OnEnable()
@@ -58,12 +54,12 @@ public class PlayerController : MonoBehaviour
 
     #endregion
 
-    #region Model
+    #region Set Data in Model
 
     private void LoadModel()
     {
-        if (playerConfig == null) playerModel = new Player();
-        else playerModel = new Player(playerConfig);
+        playerModel = gameObject.GetComponent<Player>();
+        if (playerModel == null) Debug.LogWarning("Player Model Missing!");
     }
 
     private void SubscribeDataEvents()
@@ -228,12 +224,36 @@ public class PlayerController : MonoBehaviour
 
     #endregion
 
-    #region Input
+    #region Set States in Model
+
+    private void EnterRunState(InputAction.CallbackContext context)
+    {
+
+    }
+
+    private void ExitRunState(InputAction.CallbackContext context)
+    {
+
+    }
+
+    private void EnterDashState(InputAction.CallbackContext context)
+    {
+
+    }
+
+    private void ExitDashState(InputAction.CallbackContext context)
+    {
+
+    }
+
+    #endregion
+
+    #region Operate Inputs
 
     private void LoadInput()
     {
         playerInput = new InputHandler();
-        move = playerInput.Player.Move;
+        run = playerInput.Player.Run;
         jump = playerInput.Player.Jump;
         dash = playerInput.Player.Dash;
         push = playerInput.Player.Push;
@@ -244,41 +264,53 @@ public class PlayerController : MonoBehaviour
     private void SubscribeInputEvents()
     {
         if (playerInput == null) return;
-        jump.started += DoJump;
-        dash.started += DoDash;
-        push.started += DoPush;
+        run.performed += EnterRunState;
+        run.canceled += ExitRunState;
+        dash.performed += EnterDashState;
+        dash.canceled += ExitDashState;
         playerInput.Player.Enable();
     }
 
     private void DesubscribeInputEvents()
     {
         if (playerInput == null) return;
-        jump.started -= DoJump;
-        dash.started -= DoDash;
-        push.started -= DoPush;
+        run.performed -= EnterRunState;
+        run.canceled -= ExitRunState;
+        dash.performed -= EnterDashState;
+        dash.canceled -= ExitDashState;
         playerInput.Player.Disable();
     }
 
-    private void DoMove()
+    #region Run
+
+    private void DoRun()
     {
-        Vector2 inputDirect = move.ReadValue<Vector2>();
+        Vector2 inputDirect = run.ReadValue<Vector2>();
         Vector3 forward = CameraHandler.Instance.GetCameraForward() * inputDirect.y;
         Vector3 horizontal = CameraHandler.Instance.GetCameraRight() * inputDirect.x;
-        Vector3 movement = Vector3.ClampMagnitude(forward + horizontal, 1);
-        transform.Translate(playerModel.speed.Curr * Time.deltaTime * movement, Space.World);
+        Vector3 runment = Vector3.ClampMagnitude(forward + horizontal, 1);
+        transform.Translate(playerModel.speed.Curr * Time.deltaTime * runment, Space.World);
         CameraHandler.Instance.LookAt();
 
-        Debug.Log("Move!");
+        Debug.Log("Run!");
     }
 
-    private void DoDash(InputAction.CallbackContext context)
+    #endregion
+
+    #region Dash
+
+    private void DoDash()
     {
         playerModel.speed.Maximise();
 
         Debug.Log("Dash!");
     }
 
-    private void DoJump(InputAction.CallbackContext context)
+    #endregion
+
+    #region Jump
+
+    private void DoJump()
     {
         playerModel.speed.Curr += (int)(playerModel.speed.Gravity *
                                         playerModel.speed.GravityScale * Time.deltaTime);
@@ -298,20 +330,18 @@ public class PlayerController : MonoBehaviour
         return false;
     }
 
-    private void DoPush(InputAction.CallbackContext context)
+    #endregion
+
+    #region Push
+
+    private void DoPush()
     {
         Debug.Log("Push!");
     }
 
     #endregion
 
-    #region View
-
-    private void LoadView()
-    {
-        playerAni = gameObject.GetComponent<Animator>();
-        if (playerAni == null) Debug.LogWarning("Player Animator Controller Missing!");
-    }
-
     #endregion
 }
+
+
