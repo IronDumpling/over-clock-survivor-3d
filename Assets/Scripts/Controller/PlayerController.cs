@@ -56,12 +56,6 @@ public class PlayerController : MonoBehaviour
         Debug.Log("Load Input");
     }
 
-    private void OnEnable()
-    {
-        SubscribeDataEvents();
-        SubscribeInputEvents();
-    }
-
     private void SubscribeInputEvents()
     {
         if (playerInput == null) return;
@@ -70,8 +64,6 @@ public class PlayerController : MonoBehaviour
         dash.started += DoDash;
         push.started += DoPush;
         playerInput.Player.Enable();
-
-        Debug.Log("Subscribe Input Events");
     }
 
     private void SubscribeDataEvents()
@@ -82,11 +74,19 @@ public class PlayerController : MonoBehaviour
         playerModel.speed.Changed += OnSpeedChanged;
         playerModel.energy.Changed += OnEnergyChanged;
         playerModel.freq.Changed += OnFreqChanged;
-
-        Debug.Log("Subscribe Data Events");
     }
 
-    private void OnDisable()
+    private void DesubscribeInputEvents()
+    {
+        if (playerInput == null) return;
+        jump.started -= DoJump;
+        move.started -= DoMove;
+        dash.started -= DoDash;
+        push.started -= DoPush;
+        playerInput.Player.Disable();
+    }
+
+    private void DesubscribeDataEvents()
     {
         if (playerModel == null) return;
         playerModel.level.Changed -= OnLevelChanged;
@@ -94,14 +94,24 @@ public class PlayerController : MonoBehaviour
         playerModel.speed.Changed -= OnSpeedChanged;
         playerModel.energy.Changed -= OnEnergyChanged;
         playerModel.freq.Changed -= OnFreqChanged;
+    }
 
-        if (playerInput == null) return;
-        jump.started -= DoJump;
-        move.started -= DoMove;
-        dash.started -= DoDash;
-        push.started -= DoPush;
+    private void OnEnable()
+    {
+        SubscribeDataEvents();
+        SubscribeInputEvents();
+    }
 
-        playerInput.Player.Disable();
+    private void OnDisable()
+    {
+        DesubscribeDataEvents();
+        DesubscribeInputEvents();
+    }
+
+    private void OnDestroy()
+    {
+        DesubscribeDataEvents();
+        DesubscribeInputEvents();   
     }
 
     #endregion
@@ -266,15 +276,7 @@ public class PlayerController : MonoBehaviour
 
     private void DoDash(InputAction.CallbackContext context)
     {
-        Vector2 inputDirect = move.ReadValue<Vector2>();
-        Vector3 forward = CameraHandler.Instance.GetCameraForward() * inputDirect.y;
-        Vector3 horizontal = CameraHandler.Instance.GetCameraRight() * inputDirect.x;
-        Vector3 movement = Vector3.ClampMagnitude(forward + horizontal, 1);
-
         playerModel.speed.Maximise();
-        transform.Translate(playerModel.speed.Curr * Time.deltaTime * movement, Space.World);
-
-        CameraHandler.Instance.LookAt();
 
         Debug.Log("Dash!");
     }
