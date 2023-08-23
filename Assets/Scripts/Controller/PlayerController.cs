@@ -9,8 +9,6 @@ public class PlayerController : MonoBehaviour
     [Header("Model")]
     private Player playerModel;
 
-    [Header("View")]
-
     [Header("Input")]
     private InputHandler playerInput;
     private InputAction run;
@@ -32,12 +30,11 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
-        playerModel.StateMachine.Update();
-        
         if (run.IsPressed()) DoRun();
         if (dash.IsPressed()) DoDash();
         if (jump.IsPressed()) DoJump();
         if (push.IsPressed()) DoPush();
+        playerModel.StateMachine.Update();
     }
 
     private void OnDestroy()
@@ -166,18 +163,50 @@ public class PlayerController : MonoBehaviour
     private void SubscribeStateEvents()
     {
         if (playerModel == null) return;
-        playerModel.StateMachine.Changed += DoWhat;
+        playerModel.StateMachine.Changed += StateChange;
     }
 
     private void DesubscribeStateEvents()
     {
         if (playerModel == null) return;
-        playerModel.StateMachine.Changed -= DoWhat;
+        playerModel.StateMachine.Changed -= StateChange;
     }
 
-    private void DoWhat(State fromState, State toState)
+    private void StateChange(State fromState, State toState)
     {
-        
+        switch (fromState.m_StateType)
+        {
+            case (int)PlayerStateType.IDLE:
+                break;
+            case (int)PlayerStateType.RUN:
+                break;
+            case (int)PlayerStateType.DASH:
+                ExitDashState();
+                break;
+            case (int)PlayerStateType.JUMP:
+                break;
+            case (int)PlayerStateType.PUSH:
+                break;
+            default:
+                break;
+        }
+
+        switch (toState.m_StateType)
+        {
+            case (int)PlayerStateType.IDLE:
+                break;
+            case (int)PlayerStateType.RUN:
+                break;
+            case (int)PlayerStateType.DASH:
+                EnterDashState();
+                break;
+            case (int)PlayerStateType.JUMP:
+                break;
+            case (int)PlayerStateType.PUSH:
+                break;
+            default:
+                break;
+        }
     }
 
     #endregion
@@ -199,14 +228,17 @@ public class PlayerController : MonoBehaviour
 
     private void DoRun()
     {
+        if (!IsGrounded(0.3f)) return;
+
         Vector2 inputDirect = run.ReadValue<Vector2>();
         Vector3 forward = CameraHandler.Instance.GetCameraForward() * inputDirect.y;
         Vector3 horizontal = CameraHandler.Instance.GetCameraRight() * inputDirect.x;
-        Vector3 runment = Vector3.ClampMagnitude(forward + horizontal, 1);
-        transform.Translate(playerModel.speed.Curr * Time.deltaTime * runment, Space.World);
+        Vector3 movement = Vector3.ClampMagnitude(forward + horizontal, 1);
+        transform.Translate(playerModel.speed.Curr * Time.deltaTime * movement, Space.World);
         CameraHandler.Instance.LookAt();
 
-        Debug.Log("Run!");
+        Debug.Log($"Run with speed {playerModel.speed.Curr} to " +
+                  $"direction [{movement.x}, {movement.y}, {movement.z}]");
     }
 
     #endregion
@@ -217,7 +249,17 @@ public class PlayerController : MonoBehaviour
     {
         playerModel.speed.Maximise();
 
-        Debug.Log("Dash!");
+        Debug.Log($"Dash with speed {playerModel.speed.Curr}");
+    }
+
+    private void EnterDashState()
+    {
+        playerModel.speed.Maximise();
+    }
+
+    private void ExitDashState()
+    {
+        playerModel.speed.Curr = playerModel.speed.Min;
     }
 
     #endregion

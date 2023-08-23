@@ -53,19 +53,9 @@ public class PlayerDisplay : MonoBehaviour
         playerModel.freq.Changed -= OnFreqChanged;
     }
 
-    public void UpdateLevelView()
-    {
-
-    }
-
     public void OnLevelChanged()
     {
         UpdateLevelView();
-    }
-
-    public void UpdateHealthView()
-    {
-
     }
 
     public void OnHealthChanged()
@@ -73,29 +63,14 @@ public class PlayerDisplay : MonoBehaviour
         UpdateHealthView();
     }
 
-    public void UpdateSpeedView()
-    {
-
-    }
-
     public void OnSpeedChanged()
     {
         UpdateSpeedView();
     }
 
-    public void UpdateEnergyView()
-    {
-
-    }
-
     public void OnEnergyChanged()
     {
         UpdateEnergyView();
-    }
-
-    public void UpdateFreqView()
-    {
-
     }
 
     public void OnFreqChanged()
@@ -126,10 +101,10 @@ public class PlayerDisplay : MonoBehaviour
             case (int)PlayerStateType.IDLE:
                 break;
             case (int)PlayerStateType.RUN:
-                EnterRunState();
+                ExitRunState();
                 break;
             case (int)PlayerStateType.DASH:
-                EnterDashState();
+                ExitDashState();
                 break;
             case (int)PlayerStateType.JUMP:
                 break;
@@ -144,10 +119,11 @@ public class PlayerDisplay : MonoBehaviour
             case (int)PlayerStateType.IDLE:
                 break;
             case (int)PlayerStateType.RUN:
-                ExitRunState();
+                EnterRunState();
                 break;
             case (int)PlayerStateType.DASH:
-                ExitDashState();
+                EnterDashState();
+                
                 break;
             case (int)PlayerStateType.JUMP:
                 break;
@@ -186,6 +162,31 @@ public class PlayerDisplay : MonoBehaviour
     private void ExitDashState()
     {
         playerAni.SetBool("isDash", false);
+    }
+
+    public void UpdateLevelView()
+    {
+
+    }
+
+    public void UpdateHealthView()
+    {
+
+    }
+
+    public void UpdateSpeedView()
+    {
+
+    }
+
+    public void UpdateEnergyView()
+    {
+
+    }
+
+    public void UpdateFreqView()
+    {
+
     }
 
     #endregion
