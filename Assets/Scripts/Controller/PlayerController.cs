@@ -33,67 +33,9 @@ public class PlayerController : MonoBehaviour
         SubscribeInputEvents();
     }
 
-    private void LoadModel()
+    private void Update()
     {
-        if (playerConfig == null) playerModel = new Player();
-        else playerModel = new Player(playerConfig);
-    }
-
-    private void LoadView()
-    {
-        playerAni = gameObject.GetComponent<Animator>();
-        if (playerAni == null) Debug.LogWarning("Player Animator Controller Missing!");
-    }
-
-    private void LoadInput()
-    {
-        playerInput = new InputHandler();
-        move = playerInput.Player.Move;
-        jump = playerInput.Player.Jump;
-        dash = playerInput.Player.Dash;
-        push = playerInput.Player.Push;
-        look = playerInput.Player.Look;
-        Debug.Log("Load Input");
-    }
-
-    private void SubscribeInputEvents()
-    {
-        if (playerInput == null) return;
-        jump.started += DoJump;
-        move.started += DoMove;
-        dash.started += DoDash;
-        push.started += DoPush;
-        playerInput.Player.Enable();
-    }
-
-    private void SubscribeDataEvents()
-    {
-        if (playerModel == null) return;
-        playerModel.level.Changed += OnLevelChanged;
-        playerModel.health.Changed += OnHealthChanged;
-        playerModel.speed.Changed += OnSpeedChanged;
-        playerModel.energy.Changed += OnEnergyChanged;
-        playerModel.freq.Changed += OnFreqChanged;
-    }
-
-    private void DesubscribeInputEvents()
-    {
-        if (playerInput == null) return;
-        jump.started -= DoJump;
-        move.started -= DoMove;
-        dash.started -= DoDash;
-        push.started -= DoPush;
-        playerInput.Player.Disable();
-    }
-
-    private void DesubscribeDataEvents()
-    {
-        if (playerModel == null) return;
-        playerModel.level.Changed -= OnLevelChanged;
-        playerModel.health.Changed -= OnHealthChanged;
-        playerModel.speed.Changed -= OnSpeedChanged;
-        playerModel.energy.Changed -= OnEnergyChanged;
-        playerModel.freq.Changed -= OnFreqChanged;
+        if (move.IsPressed()) DoMove();
     }
 
     private void OnEnable()
@@ -117,6 +59,32 @@ public class PlayerController : MonoBehaviour
     #endregion
 
     #region Model
+
+    private void LoadModel()
+    {
+        if (playerConfig == null) playerModel = new Player();
+        else playerModel = new Player(playerConfig);
+    }
+
+    private void SubscribeDataEvents()
+    {
+        if (playerModel == null) return;
+        playerModel.level.Changed += OnLevelChanged;
+        playerModel.health.Changed += OnHealthChanged;
+        playerModel.speed.Changed += OnSpeedChanged;
+        playerModel.energy.Changed += OnEnergyChanged;
+        playerModel.freq.Changed += OnFreqChanged;
+    }
+
+    private void DesubscribeDataEvents()
+    {
+        if (playerModel == null) return;
+        playerModel.level.Changed -= OnLevelChanged;
+        playerModel.health.Changed -= OnHealthChanged;
+        playerModel.speed.Changed -= OnSpeedChanged;
+        playerModel.energy.Changed -= OnEnergyChanged;
+        playerModel.freq.Changed -= OnFreqChanged;
+    }
 
     #region Level
 
@@ -262,7 +230,36 @@ public class PlayerController : MonoBehaviour
 
     #region Input
 
-    private void DoMove(InputAction.CallbackContext context)
+    private void LoadInput()
+    {
+        playerInput = new InputHandler();
+        move = playerInput.Player.Move;
+        jump = playerInput.Player.Jump;
+        dash = playerInput.Player.Dash;
+        push = playerInput.Player.Push;
+        look = playerInput.Player.Look;
+        Debug.Log("Load Input");
+    }
+
+    private void SubscribeInputEvents()
+    {
+        if (playerInput == null) return;
+        jump.started += DoJump;
+        dash.started += DoDash;
+        push.started += DoPush;
+        playerInput.Player.Enable();
+    }
+
+    private void DesubscribeInputEvents()
+    {
+        if (playerInput == null) return;
+        jump.started -= DoJump;
+        dash.started -= DoDash;
+        push.started -= DoPush;
+        playerInput.Player.Disable();
+    }
+
+    private void DoMove()
     {
         Vector2 inputDirect = move.ReadValue<Vector2>();
         Vector3 forward = CameraHandler.Instance.GetCameraForward() * inputDirect.y;
@@ -309,6 +306,12 @@ public class PlayerController : MonoBehaviour
     #endregion
 
     #region View
+
+    private void LoadView()
+    {
+        playerAni = gameObject.GetComponent<Animator>();
+        if (playerAni == null) Debug.LogWarning("Player Animator Controller Missing!");
+    }
 
     #endregion
 }
