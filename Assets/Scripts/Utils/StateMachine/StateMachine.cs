@@ -4,7 +4,7 @@ using System.Collections.Generic;
 public class StateMachine
 {
     public IAgent m_Agent;
-    public Dictionary<int, State> m_StateDict = new Dictionary<int, State>();
+    public Dictionary<int, State> m_StateDict = new();
     public State m_CurrState;
     public event Action<State, State> Changed;
 
@@ -17,8 +17,8 @@ public class StateMachine
     {
         if (m_StateDict.TryGetValue(key, out m_CurrState))
         {
+            Changed.Invoke(m_CurrState, m_CurrState);
             m_CurrState.Enter();
-            Changed.Invoke(null, m_CurrState);
         }
     }
 

@@ -26,30 +26,25 @@ public class PlayerController : MonoBehaviour
         LoadModel();
         LoadInput();
         SubscribeDataEvents();
-        SubscribeInputEvents();
+        SubscribeStateEvents();
+        playerInput.Player.Enable();
     }
 
     private void Update()
     {
+        playerModel.StateMachine.Update();
+        
         if (run.IsPressed()) DoRun();
-    }
-
-    private void OnEnable()
-    {
-        SubscribeDataEvents();
-        SubscribeInputEvents();
-    }
-
-    private void OnDisable()
-    {
-        DesubscribeDataEvents();
-        DesubscribeInputEvents();
+        if (dash.IsPressed()) DoDash();
+        if (jump.IsPressed()) DoJump();
+        if (push.IsPressed()) DoPush();
     }
 
     private void OnDestroy()
     {
         DesubscribeDataEvents();
-        DesubscribeInputEvents();   
+        DesubscribeStateEvents();
+        playerInput.Player.Disable();
     }
 
     #endregion
@@ -58,28 +53,18 @@ public class PlayerController : MonoBehaviour
 
     private void LoadModel()
     {
-        playerModel = gameObject.GetComponent<Player>();
-        if (playerModel == null) Debug.LogWarning("Player Model Missing!");
+        if (!gameObject.TryGetComponent(out playerModel))
+            Debug.LogWarning("Player Model Missing!");
     }
 
     private void SubscribeDataEvents()
     {
         if (playerModel == null) return;
-        playerModel.level.Changed += OnLevelChanged;
-        playerModel.health.Changed += OnHealthChanged;
-        playerModel.speed.Changed += OnSpeedChanged;
-        playerModel.energy.Changed += OnEnergyChanged;
-        playerModel.freq.Changed += OnFreqChanged;
     }
 
     private void DesubscribeDataEvents()
     {
         if (playerModel == null) return;
-        playerModel.level.Changed -= OnLevelChanged;
-        playerModel.health.Changed -= OnHealthChanged;
-        playerModel.speed.Changed -= OnSpeedChanged;
-        playerModel.energy.Changed -= OnEnergyChanged;
-        playerModel.freq.Changed -= OnFreqChanged;
     }
 
     #region Level
@@ -92,16 +77,6 @@ public class PlayerController : MonoBehaviour
     public void Upgrade(int amount)
     {
         playerModel.level?.Increment(amount);
-    }
-
-    public void UpdateLevelView()
-    {
-
-    }
-
-    public void OnLevelChanged()
-    {
-        UpdateLevelView();
     }
 
     #endregion
@@ -123,16 +98,6 @@ public class PlayerController : MonoBehaviour
         playerModel.health?.Maximise();
     }
 
-    public void UpdateHealthView()
-    {
-
-    }
-
-    public void OnHealthChanged()
-    {
-        UpdateHealthView();
-    }
-
     #endregion
 
     #region Speed
@@ -150,16 +115,6 @@ public class PlayerController : MonoBehaviour
     public void SpeedMax()
     {
         playerModel.speed?.Maximise();
-    }
-
-    public void UpdateSpeedView()
-    {
-
-    }
-
-    public void OnSpeedChanged()
-    {
-        UpdateSpeedView();
     }
 
     #endregion
@@ -181,16 +136,6 @@ public class PlayerController : MonoBehaviour
         playerModel.energy?.Minimise();
     }
 
-    public void UpdateEnergyView()
-    {
-
-    }
-
-    public void OnEnergyChanged()
-    {
-        UpdateEnergyView();
-    }
-
     #endregion
 
     #region Frequency
@@ -210,15 +155,7 @@ public class PlayerController : MonoBehaviour
         playerModel.freq?.Maximise();
     }
 
-    public void UpdateFreqView()
-    {
 
-    }
-
-    public void OnFreqChanged()
-    {
-        UpdateFreqView();
-    }
 
     #endregion
 
@@ -226,24 +163,21 @@ public class PlayerController : MonoBehaviour
 
     #region Set States in Model
 
-    private void EnterRunState(InputAction.CallbackContext context)
+    private void SubscribeStateEvents()
     {
-
+        if (playerModel == null) return;
+        playerModel.StateMachine.Changed += DoWhat;
     }
 
-    private void ExitRunState(InputAction.CallbackContext context)
+    private void DesubscribeStateEvents()
     {
-
+        if (playerModel == null) return;
+        playerModel.StateMachine.Changed -= DoWhat;
     }
 
-    private void EnterDashState(InputAction.CallbackContext context)
+    private void DoWhat(State fromState, State toState)
     {
-
-    }
-
-    private void ExitDashState(InputAction.CallbackContext context)
-    {
-
+        
     }
 
     #endregion
@@ -259,26 +193,6 @@ public class PlayerController : MonoBehaviour
         push = playerInput.Player.Push;
         look = playerInput.Player.Look;
         Debug.Log("Load Input");
-    }
-
-    private void SubscribeInputEvents()
-    {
-        if (playerInput == null) return;
-        run.performed += EnterRunState;
-        run.canceled += ExitRunState;
-        dash.performed += EnterDashState;
-        dash.canceled += ExitDashState;
-        playerInput.Player.Enable();
-    }
-
-    private void DesubscribeInputEvents()
-    {
-        if (playerInput == null) return;
-        run.performed -= EnterRunState;
-        run.canceled -= ExitRunState;
-        dash.performed -= EnterDashState;
-        dash.canceled -= ExitDashState;
-        playerInput.Player.Disable();
     }
 
     #region Run
@@ -326,7 +240,12 @@ public class PlayerController : MonoBehaviour
     {
         Ray ray = new(transform.position + Vector3.up * rayLength, Vector3.down);
         if (Physics.Raycast(ray, out _, rayLength))
+        {
+            Debug.Log("Is Grounded!");
             return true;
+        }
+
+        Debug.Log("Not Grounded!");
         return false;
     }
 
