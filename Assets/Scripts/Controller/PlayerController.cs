@@ -17,6 +17,17 @@ public class PlayerController : MonoBehaviour
     private InputAction push;
     private InputAction look;
 
+    //    [SerializeField] private LayerMask groundLayer;
+    //    [SerializeField] private float moveSpeed = 5f;
+    //    [SerializeField] private float dashSpeed = 10f;
+    //    [SerializeField] private float dashEnergyConsumption = 10f;
+    //    [SerializeField] private float energyRegenRate = 5f;
+    //    [SerializeField] private float maxEnergy = 100f;
+
+    //    private float currentEnergy;
+    //    private Vector2 moveInput;
+    //    private bool isGrounded;
+
     #region Life Cycle
 
     private void Start()
@@ -30,12 +41,24 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
-        if (run.IsPressed()) DoRun();
-        if (dash.IsPressed()) DoDash();
-        if (jump.IsPressed()) DoJump();
-        if (push.IsPressed()) DoPush();
+        if (run.IsPressed()) ProcessRun();
+        if (dash.triggered) ProcessDash();
+        if (jump.IsPressed()) ProcessJump();
+        if (push.triggered) ProcessPush();
         playerModel.StateMachine.Update();
     }
+
+    //    private void Start()
+    //    {
+    //        currentEnergy = maxEnergy;
+    //    }
+
+    //    private void Update()
+    //    {
+    //        CheckGrounded();
+    //        ProcessMovement();
+    //        ProcessDash();
+    //    }
 
     private void OnDestroy()
     {
@@ -226,31 +249,63 @@ public class PlayerController : MonoBehaviour
 
     #region Run
 
-    private void DoRun()
+    private void ProcessRun()
     {
-        if (!IsGrounded(0.3f)) return;
+        //if (!IsGrounded(0.3f)) return;
 
         Vector2 inputDirect = run.ReadValue<Vector2>();
         Vector3 forward = CameraHandler.Instance.GetCameraForward() * inputDirect.y;
         Vector3 horizontal = CameraHandler.Instance.GetCameraRight() * inputDirect.x;
-        Vector3 movement = Vector3.ClampMagnitude(forward + horizontal, 1);
-        transform.Translate(playerModel.speed.Curr * Time.deltaTime * movement, Space.World);
+        Vector3 moveDirection = forward + horizontal;
+        moveDirection.Normalize();
+        transform.Translate(playerModel.speed.Curr * Time.deltaTime * moveDirection, Space.World);
+
         CameraHandler.Instance.LookAt();
 
         Debug.Log($"Run with speed {playerModel.speed.Curr} to " +
-                  $"direction [{movement.x}, {movement.y}, {movement.z}]");
+                  $"direction [{moveDirection.x}, {moveDirection.y}, {moveDirection.z}]");
     }
 
     #endregion
 
     #region Dash
 
-    private void DoDash()
+    private void ProcessDash()
     {
         playerModel.speed.Maximise();
 
         Debug.Log($"Dash with speed {playerModel.speed.Curr}");
     }
+
+//    private void ProcessDash()
+//    {
+//        if (DashInput())
+//        {
+//            if (currentEnergy >= dashEnergyConsumption)
+//            {
+//                Vector3 cameraForward = cameraTransform.forward;
+//                cameraForward.y = 0f;
+//                cameraForward.Normalize();
+
+//                Vector3 dashDirection = cameraForward;
+//                Vector3 dashAmount = dashDirection * dashSpeed * Time.deltaTime;
+
+//                playerTransform.Translate(dashAmount, Space.World);
+
+//                currentEnergy -= dashEnergyConsumption;
+//                currentEnergy = Mathf.Max(currentEnergy, 0f);
+//            }
+//        }
+//        else
+//        {
+//            currentEnergy = Mathf.Min(currentEnergy + energyRegenRate * Time.deltaTime, maxEnergy);
+//        }
+//    }
+
+//    private bool DashInput()
+//    {
+//        return InputHandler.instance.Dash.triggered;
+//    }
 
     private void EnterDashState()
     {
@@ -266,7 +321,7 @@ public class PlayerController : MonoBehaviour
 
     #region Jump
 
-    private void DoJump()
+    private void ProcessJump()
     {
         playerModel.speed.Curr += (int)(playerModel.speed.Gravity *
                                         playerModel.speed.GravityScale * Time.deltaTime);
@@ -281,6 +336,7 @@ public class PlayerController : MonoBehaviour
     private bool IsGrounded(float rayLength)
     {
         Ray ray = new(transform.position + Vector3.up * rayLength, Vector3.down);
+
         if (Physics.Raycast(ray, out _, rayLength))
         {
             Debug.Log("Is Grounded!");
@@ -291,11 +347,17 @@ public class PlayerController : MonoBehaviour
         return false;
     }
 
+    //    private void CheckGrounded()
+    //    {
+    //        isGrounded = Physics.OverlapBox(playerTransform.position, playerTransform.localScale / 2,
+    //                                        Quaternion.identity, groundLayer).Length > 0;
+    //    }
+
     #endregion
 
     #region Push
 
-    private void DoPush()
+    private void ProcessPush()
     {
         Debug.Log("Push!");
     }
@@ -304,5 +366,3 @@ public class PlayerController : MonoBehaviour
 
     #endregion
 }
-
-
