@@ -22,9 +22,9 @@ MonoBehaviour:
     max: 100
     limits: 
   energy:
-    curr: 0
+    curr: 50
     min: 0
-    max: 0
+    max: 100
     limits: 
   speed:
     curr: 1
