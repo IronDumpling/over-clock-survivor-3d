@@ -241,6 +241,32 @@ public class PlayerController : MonoBehaviour
                   $"direction [{moveDirection.x}, {moveDirection.y}, {moveDirection.z}]");
     }
 
+    //private void ProcessRun()
+    //{
+    //    if (moveInput.magnitude > 0)
+    //    {
+    //        Vector3 cameraForward = cameraTransform.forward;
+    //        Vector3 cameraRight = cameraTransform.right;
+
+    //        cameraForward.y = 0f;
+    //        cameraRight.y = 0f;
+    //        cameraForward.Normalize();
+    //        cameraRight.Normalize();
+
+    //        Vector3 moveDirection = cameraForward * moveInput.y + cameraRight * moveInput.x;
+    //        moveDirection.Normalize();
+
+    //        Vector3 moveAmount = moveDirection * moveSpeed * Time.deltaTime;
+
+    //        Vector3 newPosition = playerTransform.position + moveAmount;
+
+    //        if (!Physics.Raycast(playerTransform.position, moveDirection, moveAmount.magnitude, obstacleLayer))
+    //        {
+    //            playerTransform.position = newPosition;
+    //        }
+    //    }
+    //}
+
     #endregion
 
     #region Dash
@@ -256,6 +282,36 @@ public class PlayerController : MonoBehaviour
 
         Debug.Log($"Dash with speed {playerModel.speed.Curr} and energy {playerModel.energy.Curr}");
     }
+
+    //private void ProcessDash()
+    //{
+    //    if (DashInput())
+    //    {
+    //        if (currentEnergy >= dashEnergyConsumption)
+    //        {
+    //            Vector3 cameraForward = cameraTransform.forward;
+    //            cameraForward.y = 0f;
+    //            cameraForward.Normalize();
+
+    //            Vector3 dashDirection = cameraForward;
+    //            Vector3 dashAmount = dashDirection * dashSpeed * Time.deltaTime;
+
+    //            Vector3 newPosition = playerTransform.position + dashAmount;
+
+    //            if (!Physics.Raycast(playerTransform.position, dashDirection, dashAmount.magnitude, obstacleLayer))
+    //            {
+    //                playerTransform.position = newPosition;
+
+    //                currentEnergy -= dashEnergyConsumption;
+    //                currentEnergy = Mathf.Max(currentEnergy, 0f);
+    //            }
+    //        }
+    //    }
+    //    else
+    //    {
+    //        currentEnergy = Mathf.Min(currentEnergy + energyRegenRate * Time.deltaTime, maxEnergy);
+    //    }
+    //}
 
     #endregion
 
@@ -273,26 +329,17 @@ public class PlayerController : MonoBehaviour
         Debug.Log("Jump!");
     }
 
-    private bool IsGrounded(float rayLength)
-    {
-        Ray ray = new(transform.position + Vector3.up * rayLength, Vector3.down);
-
-        if (Physics.Raycast(ray, out _, rayLength))
-        {
-            Debug.Log("Is Grounded!");
-            return true;
-        }
-
-        Debug.Log("Not Grounded!");
-        return false;
-    }
-
     private bool CheckGrounded()
     {
-        bool isGrounded = Physics.OverlapBox(transform.position, transform.localScale / 2,
-                                  Quaternion.identity).Length > 0;
+        bool isGrounded = false;
+        float rayLength = transform.localScale.y / 2 + 0.1f;
 
-        Debug.Log($"Grounded: {isGrounded}");
+        if (Physics.Raycast(transform.position, Vector3.down, out RaycastHit _, rayLength))
+        {
+            isGrounded = true;
+        }
+
+        Debug.Log($"Grounded: {isGrounded}, raylength: {rayLength}");
 
         return isGrounded;
     }
@@ -310,3 +357,4 @@ public class PlayerController : MonoBehaviour
 
     #endregion
 }
+
