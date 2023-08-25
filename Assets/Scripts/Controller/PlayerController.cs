@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.UIElements;
 
 public class PlayerController : MonoBehaviour
 {
@@ -81,12 +82,12 @@ public class PlayerController : MonoBehaviour
 
     public void DownGrade(int amount)
     {
-        playerModel.level?.Decrement(amount);
+        playerModel.level.Curr -= amount;
     }
 
     public void Upgrade(int amount)
     {
-        playerModel.level?.Increment(amount);
+        playerModel.level.Curr += amount;
     }
 
     #endregion
@@ -95,12 +96,12 @@ public class PlayerController : MonoBehaviour
 
     public void Damage(int amount)
     {
-        playerModel.health?.Decrement(amount);
+        playerModel.health.Curr -= amount;
     }
 
     public void Heal(int amount)
     {
-        playerModel.health?.Increment(amount);
+        playerModel.health.Curr += amount;
     }
 
     public void Reset()
@@ -112,14 +113,14 @@ public class PlayerController : MonoBehaviour
 
     #region Speed
 
-    public void SpeedDown(int amount)
+    public void SpeedDown(float amount)
     {
-        playerModel.speed?.Decrement(amount);
+        playerModel.speed.Curr -= amount;
     }
 
-    public void SpeedUp(int amount)
+    public void SpeedUp(float amount)
     {
-        playerModel.speed?.Increment(amount);
+        playerModel.speed.Curr += amount;
     }
 
     public void SpeedMax()
@@ -133,12 +134,12 @@ public class PlayerController : MonoBehaviour
 
     public void LoseEngergy(int amount)
     {
-        playerModel.energy?.Decrement(amount);
+        playerModel.energy.Curr -= amount;
     }
 
     public void GainEnergy(int amount)
     {
-        playerModel.energy?.Increment(amount);
+        playerModel.energy.Curr += amount;
     }
 
     public void ResetEnergy()
@@ -150,14 +151,14 @@ public class PlayerController : MonoBehaviour
 
     #region Frequency
 
-    public void DropFreq(int amount)
+    public void DropFreq(float amount)
     {
-        playerModel.freq?.Decrement(amount);
+        playerModel.freq.Curr -= amount;
     }
 
-    public void RiseFreq(int amount)
+    public void RiseFreq(float amount)
     {
-        playerModel.freq?.Increment(amount);
+        playerModel.freq.Curr += amount;
     }
 
     public void ResetFreq()
@@ -275,9 +276,8 @@ public class PlayerController : MonoBehaviour
 
     private void DuringJump()
     {
-        playerModel.speed.Curr += playerModel.speed.Gravity *
-                                playerModel.speed.GravityScale * Time.deltaTime;
-        Debug.Log($"gravity: {(int)(playerModel.speed.Gravity * playerModel.speed.GravityScale * Time.deltaTime)}");
+        float grav = playerModel.speed.Gravity * playerModel.speed.GravityScale * Time.deltaTime;
+        SpeedUp(grav);
 
         if (colCheck.Ground() && playerModel.speed.Curr < 0)
         {
@@ -287,12 +287,21 @@ public class PlayerController : MonoBehaviour
                                           colCheck.ClosestPoint.y + offset,
                                           transform.position.z);
 
-            transform.position = snappedPosition;
+            //transform.position = snappedPosition;
             inJumping = false;
         }
-        Debug.Log($"isJumping: {inJumping} with speed: {playerModel.speed.Curr}");
+
+        Debug.Log($"speed: {playerModel.speed.Curr} gravity: {grav} isJumping: {inJumping}");
+
         transform.Translate(new Vector3(0, playerModel.speed.Curr, 0) * Time.deltaTime);
     }
+
+    //private void OnDrawGizmos()
+    //{
+    //    Gizmos.color = Color.red;
+    //    Gizmos.DrawCube(new Vector3(transform.gameObject.GetComponent<CapsuleCollider>().bounds.center.x, transform.gameObject.GetComponent<CapsuleCollider>().bounds.min.y, transform.gameObject.GetComponent<CapsuleCollider>().bounds.center.z),
+    //                    new Vector3(0.1f, 0.05f, 0.1f) * 2);
+    //}
 
     private void ProcessJump()
     {

@@ -1,6 +1,8 @@
 using System;
+using System.Reflection;
+using UnityEngine;
 
-public class GeneralData<T> where T : IComparable<T>
+public class GeneralData<T> where T : IComparable
 {
     public event Action Changed;
 
@@ -28,29 +30,17 @@ public class GeneralData<T> where T : IComparable<T>
     public T Curr
     {
         get => curr;
-        set => curr = value;
-    }
-
-    public virtual void Increment(T amount)
-    {
-        //curr = curr.Add(curr, amount);
-        //curr += amount;
-        //curr = curr + amount;
-        curr = Clamp(curr, min, max);
-        Update();
-    }
-
-    public void Decrement(T amount)
-    {
-        //curr = curr.Minus(curr, amount);
-        //curr -= amount;
-        curr = Clamp(curr, min, max);
-        Update();
+        set
+        {
+            curr = value;
+            curr = Clamp(curr, min, max);
+            Update();
+        }
     }
 
     public void Update()
     {
-        Changed.Invoke();
+        Changed?.Invoke();
     }
 
     private T Clamp(T value, T min, T max)

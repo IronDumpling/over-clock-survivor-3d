@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.UIElements;
 
 public class CollideCheck
 {
@@ -14,25 +15,24 @@ public class CollideCheck
     {
         _transform = transform;
         _checkRange = checkRange;
-        _bottom = transform.position - 0.5f * transform.localScale.y * Vector3.up;
+        _bottom = new Vector3(transform.gameObject.GetComponent<CapsuleCollider>().bounds.center.x, transform.gameObject.GetComponent<CapsuleCollider>().bounds.min.y, transform.gameObject.GetComponent<CapsuleCollider>().bounds.center.z);
         _forward = transform.forward;
     }
-
     public void Update()
     {
-        _bottom = _transform.position - 0.5f * _transform.localScale.y * Vector3.up;
+        _bottom = new Vector3(_transform.gameObject.GetComponent<CapsuleCollider>().bounds.center.x, _transform.gameObject.GetComponent<CapsuleCollider>().bounds.min.y, _transform.gameObject.GetComponent<CapsuleCollider>().bounds.center.z);
         _forward = _transform.forward;
     }
-
     public bool Ground()
     {
         Collider[] colliders = Physics.OverlapBox(_bottom,
-                            new Vector3(_checkRange, 0.05f, _checkRange));
+        new Vector3(_checkRange, 0.05f, _checkRange));
 
         foreach (Collider collider in colliders)
         {
             if (collider.gameObject != _transform.gameObject)
             {
+                Debug.Log($"Who are you? {collider.gameObject.name}");
                 _closestPoint = collider.ClosestPoint(_transform.position);
                 return true;
             }

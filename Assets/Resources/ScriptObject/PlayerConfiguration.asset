@@ -28,15 +28,15 @@ MonoBehaviour:
     limits: 
   speed:
     curr: 1
-    min: 1
+    min: -10
     max: 10
     naturalDrop: 0
-    lowerLimits: 
-    upperLimits: 
+    lowerLimits: []
+    upperLimits: []
   frequency:
     curr: 0
     min: 0
     max: 0
     naturalDrop: 0
-    lowerLimits: 
-    upperLimits: 
+    lowerLimits: []
+    upperLimits: []
