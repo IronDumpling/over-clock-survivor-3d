@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.InputSystem.HID;
 
 public class CollideCheck
 {
@@ -19,6 +20,7 @@ public class CollideCheck
 
     #region Directions
     private Vector3 _forward;
+    // Get the moving direction
     #endregion
 
     private Vector3 _closestPoint;
@@ -96,13 +98,49 @@ public class CollideCheck
         return false;
     }
 
+    public bool Obstacle(Vector3 direction)
+    {
+        if (Physics.Raycast(_center, direction, out RaycastHit hit, _xRayLength))
+        {
+            if (hit.collider.gameObject != _transform.gameObject)
+            {
+                return true;
+            }
+
+            _closestPoint = hit.collider.ClosestPoint(_transform.position);
+        }
+
+        return false;
+    }
+
     public bool Edge()
     {
         if (Physics.Raycast(_center, _forward, out RaycastHit hit1, _xRayLength))
         {
-            Vector3 endPoint = hit1.point + _forward * _checkRange;
+            if (hit1.collider && hit1.collider.gameObject != _transform.gameObject)
+            {
+                return false;
+            }
 
-            if (!Physics.Raycast(endPoint, Vector3.down, out RaycastHit _, _yRayLength))
+            if (!Physics.Raycast(hit1.point, Vector3.down, out RaycastHit _, _yRayLength))
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public bool Edge(Vector3 direction)
+    {
+        if (Physics.Raycast(_center, direction, out RaycastHit hit1, _xRayLength))
+        {
+            if (hit1.collider && hit1.collider.gameObject != _transform.gameObject)
+            {
+                return false;
+            }
+
+            if (!Physics.Raycast(hit1.point, Vector3.down, out RaycastHit _, _yRayLength))
             {
                 return true;
             }

@@ -18,9 +18,14 @@ public class PlayerController : MonoBehaviour
     private InputAction push;
     private InputAction look;
 
+    [Header("Control")]
     private bool inJumping = false;
     private bool inPushing = false;
+
+    private Collider col;
     private CollideCheck colCheck;
+
+    private Vector3 moveDirection;
 
     #region Life Cycle
 
@@ -28,7 +33,7 @@ public class PlayerController : MonoBehaviour
     {
         LoadModel();
         LoadInput();
-        colCheck = new CollideCheck(transform, 0.1f);
+        LoadControl();
 
         SubscribeDataEvents();
         SubscribeStateEvents();
@@ -235,22 +240,29 @@ public class PlayerController : MonoBehaviour
         look = playerInput.Player.Look;
     }
 
+    private void LoadControl()
+    {
+        colCheck = new CollideCheck(transform, 0.1f);
+        col = transform.gameObject?.GetComponent<Collider>();
+        moveDirection = new Vector3();
+    }
+
     #region Run
 
     private void ProcessRun()
     {
-        if (!colCheck.Ground() || colCheck.Edge() || colCheck.Obstacle())
-        {
-            Debug.Log($"Ground: {colCheck.Ground()} Edge: {colCheck.Edge()} Obstacle: {colCheck.Obstacle()}");
-            return;
-        }
-        if (playerModel.speed.Curr < 1) playerModel.speed.Curr = 1;
-
         Vector2 inputDirect = run.ReadValue<Vector2>();
         Vector3 forward = CameraHandler.Instance.GetCameraForward() * inputDirect.y;
         Vector3 horizontal = CameraHandler.Instance.GetCameraRight() * inputDirect.x;
-        Vector3 moveDirection = forward + horizontal;
+        moveDirection = forward + horizontal;
         moveDirection.Normalize();
+
+        if (!colCheck.Ground() || colCheck.Edge(moveDirection) || colCheck.Obstacle(moveDirection))
+        {
+            Debug.Log($"Ground: {colCheck.Ground()} Edge: {colCheck.Edge(moveDirection)} Obstacle: {colCheck.Obstacle(moveDirection)}");
+            return;
+        }
+        if (playerModel.speed.Curr < 1) playerModel.speed.Curr = 1;
 
         Vector3 moveAmount = playerModel.speed.Curr * Time.deltaTime * moveDirection;
         transform.Translate(moveAmount, Space.World);
@@ -302,16 +314,20 @@ public class PlayerController : MonoBehaviour
 
     private void OnDrawGizmos()
     {
-        // Ground
         Gizmos.color = Color.red;
-        Collider col = transform.gameObject.GetComponent<Collider>();
+        if (col == null) return;
+
+        // Ground
         Gizmos.DrawCube(new Vector3(col.bounds.center.x, col.bounds.min.y, col.bounds.center.z),
                         new Vector3(0.1f, 0.05f, 0.1f) * 2);
         // Obstacle
         Gizmos.DrawLine(col.bounds.center,
-                        col.bounds.center + transform.forward * (col.bounds.size.x / 2 + 0.1f));
+                        col.bounds.center + moveDirection * (col.bounds.size.x / 2 + 0.1f));
 
         //Edge
+        Gizmos.DrawLine(col.bounds.center + moveDirection * (col.bounds.size.x / 2 + 0.1f),
+                        col.bounds.center + moveDirection * (col.bounds.size.x / 2 + 0.1f)
+                        + Vector3.down * (col.bounds.size.y / 2 + 0.1f));
 
     }
 
