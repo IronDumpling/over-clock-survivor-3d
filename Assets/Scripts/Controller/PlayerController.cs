@@ -259,7 +259,7 @@ public class PlayerController : MonoBehaviour
 
         if (!colCheck.Ground() || colCheck.Edge(moveDirection) || colCheck.Obstacle(moveDirection))
         {
-            Debug.Log($"Ground: {colCheck.Ground()} Edge: {colCheck.Edge(moveDirection)} Obstacle: {colCheck.Obstacle(moveDirection)}");
+            Debug.Log($"On the Ground: {colCheck.Ground()} Has Edge: {colCheck.Edge(moveDirection)} Has Obstacle: {colCheck.Obstacle(moveDirection)}");
             return;
         }
         if (playerModel.speed.Curr < 1) playerModel.speed.Curr = 1;
@@ -298,12 +298,12 @@ public class PlayerController : MonoBehaviour
         if (colCheck.Ground() && playerModel.speed.Curr < 0)
         {
             playerModel.speed.Curr = 0;
-            float offset = 1f;
+            float offset = 0.1f;
             Vector3 snappedPosition = new(transform.position.x,
                                           colCheck.ClosestPoint.y + offset,
                                           transform.position.z);
 
-            //transform.position = snappedPosition;
+            transform.position = snappedPosition;
             inJumping = false;
         }
 
@@ -328,12 +328,11 @@ public class PlayerController : MonoBehaviour
         Gizmos.DrawLine(col.bounds.center + moveDirection * (col.bounds.size.x / 2 + 0.1f),
                         col.bounds.center + moveDirection * (col.bounds.size.x / 2 + 0.1f)
                         + Vector3.down * (col.bounds.size.y / 2 + 0.1f));
-
     }
 
     private void ProcessJump()
     {
-        playerModel.speed.Curr = 5;
+        if(colCheck.Ground()) playerModel.speed.Curr = 10;
         inJumping = true;
     }
 

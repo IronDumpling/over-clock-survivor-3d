@@ -115,14 +115,10 @@ public class CollideCheck
 
     public bool Edge()
     {
-        if (Physics.Raycast(_center, _forward, out RaycastHit hit1, _xRayLength))
+        if (!Physics.Raycast(_center, _forward, out RaycastHit _, _xRayLength))
         {
-            if (hit1.collider && hit1.collider.gameObject != _transform.gameObject)
-            {
-                return false;
-            }
-
-            if (!Physics.Raycast(hit1.point, Vector3.down, out RaycastHit _, _yRayLength))
+            Vector3 endPoint = _center + _forward * _xRayLength;
+            if (!Physics.Raycast(endPoint, Vector3.down, out RaycastHit _, _yRayLength))
             {
                 return true;
             }
@@ -133,14 +129,10 @@ public class CollideCheck
 
     public bool Edge(Vector3 direction)
     {
-        if (Physics.Raycast(_center, direction, out RaycastHit hit1, _xRayLength))
+        if (!Physics.Raycast(_center, direction, out RaycastHit _, _xRayLength))
         {
-            if (hit1.collider && hit1.collider.gameObject != _transform.gameObject)
-            {
-                return false;
-            }
-
-            if (!Physics.Raycast(hit1.point, Vector3.down, out RaycastHit _, _yRayLength))
+            Vector3 endPoint = _center + direction * _xRayLength;
+            if (!Physics.Raycast(endPoint, Vector3.down, out RaycastHit _, _yRayLength))
             {
                 return true;
             }
