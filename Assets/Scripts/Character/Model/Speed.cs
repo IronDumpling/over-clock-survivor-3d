@@ -27,6 +27,9 @@ public class Speed : GeneralData<float>
         set => gravityScale = value;
     }
 
+    protected float checkRange = 0.1f;
+    public float CheckRange => checkRange;
+
     protected List<float> lowerLimits;
     public List<float> LowerLimits
     {

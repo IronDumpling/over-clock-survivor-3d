@@ -1,5 +1,4 @@
 using UnityEngine;
-using UnityEngine.InputSystem.HID;
 
 public class CollideCheck
 {
@@ -20,7 +19,6 @@ public class CollideCheck
 
     #region Directions
     private Vector3 _forward;
-    // Get the moving direction
     #endregion
 
     private Vector3 _closestPoint;
@@ -33,8 +31,8 @@ public class CollideCheck
 
         _collider = transform.gameObject.GetComponent<Collider>();
 
-        _xRayLength = _collider.bounds.size.x / 2 + _checkRange;
-        _yRayLength = _collider.bounds.size.y / 2 + _checkRange;
+        _xRayLength = _collider.bounds.size.x * 0.5f + _checkRange;
+        _yRayLength = _collider.bounds.size.y * 0.5f + _checkRange;
 
         _top = new Vector3(_collider.bounds.center.x, _collider.bounds.max.y, _collider.bounds.center.z);
         _center = _collider.bounds.center;
@@ -53,7 +51,7 @@ public class CollideCheck
 
     public bool Ground()
     {
-        Collider[] colliders = Physics.OverlapBox(_bottom, new Vector3(_checkRange, 0.05f, _checkRange));
+        Collider[] colliders = Physics.OverlapBox(_bottom, new Vector3(_checkRange, _checkRange * 0.5f, _checkRange));
 
         foreach (Collider collider in colliders)
         {
@@ -69,7 +67,7 @@ public class CollideCheck
 
     public bool Ceil()
     {
-        Collider[] colliders = Physics.OverlapBox(_top, new Vector3(_checkRange, -0.05f, _checkRange));
+        Collider[] colliders = Physics.OverlapBox(_top, new Vector3(_checkRange, _checkRange * -0.5f, _checkRange));
 
         foreach (Collider collider in colliders)
         {

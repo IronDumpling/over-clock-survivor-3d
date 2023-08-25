@@ -21,10 +21,8 @@ public class PlayerController : MonoBehaviour
     [Header("Control")]
     private bool inJumping = false;
     private bool inPushing = false;
-
     private Collider col;
     private CollideCheck colCheck;
-
     private Vector3 moveDirection;
 
     #region Life Cycle
@@ -242,7 +240,7 @@ public class PlayerController : MonoBehaviour
 
     private void LoadControl()
     {
-        colCheck = new CollideCheck(transform, 0.1f);
+        colCheck = new CollideCheck(transform, playerModel.speed.CheckRange);
         col = transform.gameObject?.GetComponent<Collider>();
         moveDirection = new Vector3();
     }
@@ -259,15 +257,13 @@ public class PlayerController : MonoBehaviour
 
         if (!colCheck.Ground() || colCheck.Edge(moveDirection) || colCheck.Obstacle(moveDirection))
         {
-            Debug.Log($"On the Ground: {colCheck.Ground()} Has Edge: {colCheck.Edge(moveDirection)} Has Obstacle: {colCheck.Obstacle(moveDirection)}");
             return;
         }
+
         if (playerModel.speed.Curr < 1) playerModel.speed.Curr = 1;
 
         Vector3 moveAmount = playerModel.speed.Curr * Time.deltaTime * moveDirection;
         transform.Translate(moveAmount, Space.World);
-
-        Debug.Log($"Run with speed {playerModel.speed.Curr}");
     }
 
     #endregion
@@ -295,19 +291,21 @@ public class PlayerController : MonoBehaviour
         float grav = playerModel.speed.Gravity * playerModel.speed.GravityScale * Time.deltaTime;
         SpeedUp(grav);
 
+        if (colCheck.Ceil() && playerModel.speed.Curr > 0)
+        {
+            playerModel.speed.Curr = 0;
+        }
+
         if (colCheck.Ground() && playerModel.speed.Curr < 0)
         {
             playerModel.speed.Curr = 0;
-            float offset = 0.1f;
             Vector3 snappedPosition = new(transform.position.x,
-                                          colCheck.ClosestPoint.y + offset,
+                                          colCheck.ClosestPoint.y + playerModel.speed.CheckRange,
                                           transform.position.z);
 
             transform.position = snappedPosition;
             inJumping = false;
         }
-
-        Debug.Log($"speed: {playerModel.speed.Curr} gravity: {grav} isJumping: {inJumping}");
 
         transform.Translate(new Vector3(0, playerModel.speed.Curr, 0) * Time.deltaTime);
     }
@@ -317,22 +315,26 @@ public class PlayerController : MonoBehaviour
         Gizmos.color = Color.red;
         if (col == null) return;
 
+        // Ceil
+        Gizmos.DrawCube(new Vector3(col.bounds.center.x, col.bounds.max.y, col.bounds.center.z),
+                new Vector3(playerModel.speed.CheckRange, playerModel.speed.CheckRange * -0.5f, playerModel.speed.CheckRange) * 2);
+
         // Ground
         Gizmos.DrawCube(new Vector3(col.bounds.center.x, col.bounds.min.y, col.bounds.center.z),
-                        new Vector3(0.1f, 0.05f, 0.1f) * 2);
+                        new Vector3(playerModel.speed.CheckRange, playerModel.speed.CheckRange * 0.5f, playerModel.speed.CheckRange) * 2);
         // Obstacle
         Gizmos.DrawLine(col.bounds.center,
-                        col.bounds.center + moveDirection * (col.bounds.size.x / 2 + 0.1f));
+                        col.bounds.center + moveDirection * (col.bounds.size.x / 2 + playerModel.speed.CheckRange));
 
         //Edge
-        Gizmos.DrawLine(col.bounds.center + moveDirection * (col.bounds.size.x / 2 + 0.1f),
-                        col.bounds.center + moveDirection * (col.bounds.size.x / 2 + 0.1f)
-                        + Vector3.down * (col.bounds.size.y / 2 + 0.1f));
+        Gizmos.DrawLine(col.bounds.center + moveDirection * (col.bounds.size.x / 2 + playerModel.speed.CheckRange),
+                        col.bounds.center + moveDirection * (col.bounds.size.x / 2 + playerModel.speed.CheckRange)
+                        + Vector3.down * (col.bounds.size.y / 2 + playerModel.speed.CheckRange));
     }
 
     private void ProcessJump()
     {
-        if(colCheck.Ground()) playerModel.speed.Curr = 10;
+        if(colCheck.Ground()) playerModel.speed.Maximise();
         inJumping = true;
     }
 
