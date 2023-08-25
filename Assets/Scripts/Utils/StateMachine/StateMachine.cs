@@ -17,7 +17,7 @@ public class StateMachine
     {
         if (m_StateDict.TryGetValue(key, out m_CurrState))
         {
-            Changed.Invoke(m_CurrState, m_CurrState);
+            //Changed.Invoke(m_CurrState, m_CurrState);
             m_CurrState.Enter();
         }
     }

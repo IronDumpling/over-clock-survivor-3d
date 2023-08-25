@@ -30,7 +30,8 @@ public class PlayerDisplay : MonoBehaviour
 
     private void LoadModel()
     {
-        if (!gameObject.TryGetComponent(out playerModel)) Debug.LogWarning("Player Model Missing!");
+        if (!gameObject.TryGetComponent(out playerModel))
+            Debug.LogWarning("Player Model Missing!");
     }
 
     private void SubscribeDataEvents()
@@ -187,6 +188,17 @@ public class PlayerDisplay : MonoBehaviour
     public void UpdateFreqView()
     {
 
+    }
+
+    public void LookAt()
+    {
+        //Vector3 direction = rb.velocity;
+        //direction.y = 0f;
+
+        //if (move.ReadValue<Vector2>().sqrMagnitude > 0.1f && direction.sqrMagnitude > 0.1f)
+        //    this.rb.rotation = Quaternion.LookRotation(direction, Vector3.up);
+        //else
+        //    rb.angularVelocity = Vector3.zero;
     }
 
     #endregion

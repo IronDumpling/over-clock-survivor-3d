@@ -2,30 +2,40 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Speed : GeneralData
+public class Speed : GeneralData<float>
 {
-    protected int naturalDrop;
-    public int NaturalDrop => naturalDrop;
+    public Speed(TwoLimitsData sp) : base()
+    {
+        min = sp.min;
+        curr = sp.curr;
+        max = sp.max;
+        naturalDrop = sp.naturalDrop;
+        lowerLimits = sp.lowerLimits;
+        upperLimits = sp.upperLimits;
+    }
+
+    protected float naturalDrop;
+    public float NaturalDrop => naturalDrop;
 
     protected const float gravity = -9.81f;
     public float Gravity => gravity;
 
-    protected int gravityScale = 5;
-    public int GravityScale
+    protected float gravityScale = 5;
+    public float GravityScale
     {
         get => gravityScale;
         set => gravityScale = value;
     }
 
-    protected List<int> lowerLimits;
-    public List<int> LowerLimits
+    protected List<float> lowerLimits;
+    public List<float> LowerLimits
     {
         get => lowerLimits;
         set => lowerLimits = value;
     }
 
-    protected List<int> upperLimits;
-    public List<int> UpperLimits
+    protected List<float> upperLimits;
+    public List<float> UpperLimits
     {
         get => upperLimits;
         set => upperLimits = value;

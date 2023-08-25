@@ -5,76 +5,11 @@ public class Player : MonoBehaviour, IAgent
     [SerializeField]
     private PlayerSO playerConfig;
 
-    #region Level
-
     public Level level;
-
-    private void LoadLevel(NoLimitData lv)
-    {
-        level.Min = lv.min;
-        level.Curr = lv.curr;
-        level.Max = lv.max;
-    }
-
-    #endregion
-
-    #region Health
-
     public Health health;
-
-    private void LoadHealth(OneLimitData hp)
-    {
-        health.Min = hp.min;
-        health.Curr = hp.curr;
-        health.Max = hp.max;
-        health.Limits = hp.limits;
-    }
-
-    #endregion
-
-    #region Speed
-
     public Speed speed;
-
-    private void LoadSpeed(TwoLimitsData sp)
-    {
-        speed.Min = sp.min;
-        speed.Curr = sp.curr;
-        speed.Max = sp.max;
-        speed.LowerLimits = sp.lowerLimits;
-        speed.UpperLimits = sp.upperLimits;
-    }
-
-    #endregion
-
-    #region Energy
-
     public Energy energy;
-
-    private void LoadEnergy(OneLimitData en)
-    {
-        energy.Min = en.min;
-        energy.Curr = en.curr;
-        energy.Max = en.max;
-        energy.Limits = en.limits;
-    }
-
-    #endregion
-
-    #region Frequency
-
     public Frequency freq;
-
-    private void LoadFreq(TwoLimitsData fq)
-    {
-        freq.Min = fq.min;
-        freq.Curr = fq.curr;
-        freq.Max = fq.max;
-        freq.LowerLimits = fq.lowerLimits;
-        freq.UpperLimits = fq.upperLimits;
-    }
-
-    #endregion
 
     #region State
 
@@ -92,24 +27,17 @@ public class Player : MonoBehaviour, IAgent
 
     private void Awake()
     {
-        level = new Level();
-        health = new Health();
-        speed = new Speed();
-        energy = new Energy();
-        freq = new Frequency();
+        if (playerConfig == null) return;
+
+        level = new Level(playerConfig.level);
+        health = new Health(playerConfig.health);
+        speed = new Speed(playerConfig.speed);
+        energy = new Energy(playerConfig.energy);
+        freq = new Frequency(playerConfig.frequency);
 
         StateMachine = new StateMachine(this);
         StateMachine.AddStates(states);
         StateMachine.SetDefault((int)PlayerStateType.IDLE);
-
-        if(playerConfig != null)
-        {
-            LoadLevel(playerConfig.level);
-            LoadHealth(playerConfig.health);
-            LoadEnergy(playerConfig.energy);
-            LoadSpeed(playerConfig.speed);
-            LoadFreq(playerConfig.frequency);
-        }
     }
 }
 

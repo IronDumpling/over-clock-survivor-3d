@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class CameraHandler : MonoSingleton<CameraHandler>
@@ -16,10 +14,5 @@ public class CameraHandler : MonoSingleton<CameraHandler>
         Vector3 right = transform.right;
         right.y = 0;
         return right.normalized;
-    }
-
-    public void LookAt()
-    {
-
     }
 }

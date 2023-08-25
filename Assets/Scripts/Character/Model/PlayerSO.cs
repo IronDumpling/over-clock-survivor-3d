@@ -31,11 +31,11 @@ public struct OneLimitData
 [System.Serializable]
 public struct TwoLimitsData
 {
-    public int curr;
-    public int min;
-    public int max;
-    public int naturalDrop;
-    public List<int> lowerLimits;
-    public List<int> upperLimits;
+    public float curr;
+    public float min;
+    public float max;
+    public float naturalDrop;
+    public List<float> lowerLimits;
+    public List<float> upperLimits;
 }
 

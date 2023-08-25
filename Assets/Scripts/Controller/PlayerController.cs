@@ -17,12 +17,18 @@ public class PlayerController : MonoBehaviour
     private InputAction push;
     private InputAction look;
 
+    private bool inJumping = false;
+    private bool inPushing = false;
+    private CollideCheck colCheck;
+
     #region Life Cycle
 
     private void Start()
     {
         LoadModel();
         LoadInput();
+        colCheck = new CollideCheck(transform, 0.1f);
+
         SubscribeDataEvents();
         SubscribeStateEvents();
         playerInput.Player.Enable();
@@ -31,10 +37,17 @@ public class PlayerController : MonoBehaviour
     private void Update()
     {
         if (run.IsPressed()) ProcessRun();
+
         if (dash.IsPressed()) ProcessDash();
+
         if (jump.IsPressed()) ProcessJump();
-        if (push.IsPressed()) ProcessPush();
+        if (inJumping) DuringJump();
+
+        //if (push.IsPressed()) ProcessPush();
+        //if (inPushing) DuringPush();
+
         playerModel.StateMachine.Update();
+        colCheck.Update();
     }
 
     private void OnDestroy()
@@ -219,53 +232,26 @@ public class PlayerController : MonoBehaviour
         dash = playerInput.Player.Dash;
         push = playerInput.Player.Push;
         look = playerInput.Player.Look;
-        Debug.Log("Load Input");
     }
 
     #region Run
 
     private void ProcessRun()
     {
-        if (!CheckGrounded()) return;
+        //if (!colCheck.Ground() || colCheck.Edge() || colCheck.Obstacle()) return;
+        if (playerModel.speed.Curr < 1) playerModel.speed.Curr = 1;
 
         Vector2 inputDirect = run.ReadValue<Vector2>();
         Vector3 forward = CameraHandler.Instance.GetCameraForward() * inputDirect.y;
         Vector3 horizontal = CameraHandler.Instance.GetCameraRight() * inputDirect.x;
         Vector3 moveDirection = forward + horizontal;
         moveDirection.Normalize();
-        transform.Translate(playerModel.speed.Curr * Time.deltaTime * moveDirection, Space.World);
 
-        CameraHandler.Instance.LookAt();
+        Vector3 moveAmount = playerModel.speed.Curr * Time.deltaTime * moveDirection;
+        transform.Translate(moveAmount, Space.World);
 
-        Debug.Log($"Run with speed {playerModel.speed.Curr} to " +
-                  $"direction [{moveDirection.x}, {moveDirection.y}, {moveDirection.z}]");
+        Debug.Log($"Run with speed {playerModel.speed.Curr}");
     }
-
-    //private void ProcessRun()
-    //{
-    //    if (moveInput.magnitude > 0)
-    //    {
-    //        Vector3 cameraForward = cameraTransform.forward;
-    //        Vector3 cameraRight = cameraTransform.right;
-
-    //        cameraForward.y = 0f;
-    //        cameraRight.y = 0f;
-    //        cameraForward.Normalize();
-    //        cameraRight.Normalize();
-
-    //        Vector3 moveDirection = cameraForward * moveInput.y + cameraRight * moveInput.x;
-    //        moveDirection.Normalize();
-
-    //        Vector3 moveAmount = moveDirection * moveSpeed * Time.deltaTime;
-
-    //        Vector3 newPosition = playerTransform.position + moveAmount;
-
-    //        if (!Physics.Raycast(playerTransform.position, moveDirection, moveAmount.magnitude, obstacleLayer))
-    //        {
-    //            playerTransform.position = newPosition;
-    //        }
-    //    }
-    //}
 
     #endregion
 
@@ -283,74 +269,50 @@ public class PlayerController : MonoBehaviour
         Debug.Log($"Dash with speed {playerModel.speed.Curr} and energy {playerModel.energy.Curr}");
     }
 
-    //private void ProcessDash()
-    //{
-    //    if (DashInput())
-    //    {
-    //        if (currentEnergy >= dashEnergyConsumption)
-    //        {
-    //            Vector3 cameraForward = cameraTransform.forward;
-    //            cameraForward.y = 0f;
-    //            cameraForward.Normalize();
-
-    //            Vector3 dashDirection = cameraForward;
-    //            Vector3 dashAmount = dashDirection * dashSpeed * Time.deltaTime;
-
-    //            Vector3 newPosition = playerTransform.position + dashAmount;
-
-    //            if (!Physics.Raycast(playerTransform.position, dashDirection, dashAmount.magnitude, obstacleLayer))
-    //            {
-    //                playerTransform.position = newPosition;
-
-    //                currentEnergy -= dashEnergyConsumption;
-    //                currentEnergy = Mathf.Max(currentEnergy, 0f);
-    //            }
-    //        }
-    //    }
-    //    else
-    //    {
-    //        currentEnergy = Mathf.Min(currentEnergy + energyRegenRate * Time.deltaTime, maxEnergy);
-    //    }
-    //}
-
     #endregion
 
     #region Jump
 
-    private void ProcessJump()
+    private void DuringJump()
     {
-        playerModel.speed.Curr += (int)(playerModel.speed.Gravity *
-                                        playerModel.speed.GravityScale * Time.deltaTime);
+        playerModel.speed.Curr += playerModel.speed.Gravity *
+                                playerModel.speed.GravityScale * Time.deltaTime;
+        Debug.Log($"gravity: {(int)(playerModel.speed.Gravity * playerModel.speed.GravityScale * Time.deltaTime)}");
 
-        if (CheckGrounded()) playerModel.speed.Curr = 10;
+        if (colCheck.Ground() && playerModel.speed.Curr < 0)
+        {
+            playerModel.speed.Curr = 0;
+            float offset = 1f;
+            Vector3 snappedPosition = new(transform.position.x,
+                                          colCheck.ClosestPoint.y + offset,
+                                          transform.position.z);
 
+            transform.position = snappedPosition;
+            inJumping = false;
+        }
+        Debug.Log($"isJumping: {inJumping} with speed: {playerModel.speed.Curr}");
         transform.Translate(new Vector3(0, playerModel.speed.Curr, 0) * Time.deltaTime);
-
-        Debug.Log("Jump!");
     }
 
-    private bool CheckGrounded()
+    private void ProcessJump()
     {
-        bool isGrounded = false;
-        float rayLength = transform.localScale.y / 2 + 0.1f;
-
-        if (Physics.Raycast(transform.position, Vector3.down, out RaycastHit _, rayLength))
-        {
-            isGrounded = true;
-        }
-
-        Debug.Log($"Grounded: {isGrounded}, raylength: {rayLength}");
-
-        return isGrounded;
+        playerModel.speed.Curr = 5;
+        inJumping = true;
     }
 
     #endregion
 
     #region Push
 
+    private void DuringPush()
+    {
+        inPushing = false;
+    }
+
     private void ProcessPush()
     {
         Debug.Log("Push!");
+        inPushing = true;
     }
 
     #endregion

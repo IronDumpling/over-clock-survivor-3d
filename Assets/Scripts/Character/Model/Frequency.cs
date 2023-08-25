@@ -1,19 +1,29 @@
 using System.Collections.Generic;
 
-public class Frequency : GeneralData
+public class Frequency : GeneralData<float>
 {
-    protected int naturalDrop;
-    public int NaturalDrop => naturalDrop;
+    public Frequency(TwoLimitsData fq) : base()
+    {
+        min = fq.min;
+        curr = fq.curr;
+        max = fq.max;
+        naturalDrop = fq.naturalDrop;
+        lowerLimits = fq.lowerLimits;
+        upperLimits = fq.upperLimits;
+    }
 
-    protected List<int> lowerLimits;
-    public List<int> LowerLimits
+    protected float naturalDrop;
+    public float NaturalDrop => naturalDrop;
+
+    protected List<float> lowerLimits;
+    public List<float> LowerLimits
     {
         get => lowerLimits;
         set => lowerLimits = value;
     }
 
-    protected List<int> upperLimits;
-    public List<int> UpperLimits
+    protected List<float> upperLimits;
+    public List<float> UpperLimits
     {
         get => upperLimits;
         set => upperLimits = value;
