@@ -239,7 +239,11 @@ public class PlayerController : MonoBehaviour
 
     private void ProcessRun()
     {
-        //if (!colCheck.Ground() || colCheck.Edge() || colCheck.Obstacle()) return;
+        if (!colCheck.Ground() || colCheck.Edge() || colCheck.Obstacle())
+        {
+            Debug.Log($"Ground: {colCheck.Ground()} Edge: {colCheck.Edge()} Obstacle: {colCheck.Obstacle()}");
+            return;
+        }
         if (playerModel.speed.Curr < 1) playerModel.speed.Curr = 1;
 
         Vector2 inputDirect = run.ReadValue<Vector2>();
@@ -296,12 +300,20 @@ public class PlayerController : MonoBehaviour
         transform.Translate(new Vector3(0, playerModel.speed.Curr, 0) * Time.deltaTime);
     }
 
-    //private void OnDrawGizmos()
-    //{
-    //    Gizmos.color = Color.red;
-    //    Gizmos.DrawCube(new Vector3(transform.gameObject.GetComponent<CapsuleCollider>().bounds.center.x, transform.gameObject.GetComponent<CapsuleCollider>().bounds.min.y, transform.gameObject.GetComponent<CapsuleCollider>().bounds.center.z),
-    //                    new Vector3(0.1f, 0.05f, 0.1f) * 2);
-    //}
+    private void OnDrawGizmos()
+    {
+        // Ground
+        Gizmos.color = Color.red;
+        Collider col = transform.gameObject.GetComponent<Collider>();
+        Gizmos.DrawCube(new Vector3(col.bounds.center.x, col.bounds.min.y, col.bounds.center.z),
+                        new Vector3(0.1f, 0.05f, 0.1f) * 2);
+        // Obstacle
+        Gizmos.DrawLine(col.bounds.center,
+                        col.bounds.center + transform.forward * (col.bounds.size.x / 2 + 0.1f));
+
+        //Edge
+
+    }
 
     private void ProcessJump()
     {

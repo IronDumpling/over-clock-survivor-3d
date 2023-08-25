@@ -1,12 +1,25 @@
 using UnityEngine;
-using UnityEngine.UIElements;
 
 public class CollideCheck
 {
     private Transform _transform;
+    private Collider _collider;
+
+    #region Length
     private float _checkRange;
+    private float _xRayLength;
+    private float _yRayLength;
+    #endregion
+
+    #region Positions
+    private Vector3 _top;
+    private Vector3 _center;
     private Vector3 _bottom;
+    #endregion
+
+    #region Directions
     private Vector3 _forward;
+    #endregion
 
     private Vector3 _closestPoint;
     public Vector3 ClosestPoint => _closestPoint;
@@ -15,24 +28,51 @@ public class CollideCheck
     {
         _transform = transform;
         _checkRange = checkRange;
-        _bottom = new Vector3(transform.gameObject.GetComponent<CapsuleCollider>().bounds.center.x, transform.gameObject.GetComponent<CapsuleCollider>().bounds.min.y, transform.gameObject.GetComponent<CapsuleCollider>().bounds.center.z);
+
+        _collider = transform.gameObject.GetComponent<Collider>();
+
+        _xRayLength = _collider.bounds.size.x / 2 + _checkRange;
+        _yRayLength = _collider.bounds.size.y / 2 + _checkRange;
+
+        _top = new Vector3(_collider.bounds.center.x, _collider.bounds.max.y, _collider.bounds.center.z);
+        _center = _collider.bounds.center;
+        _bottom = new Vector3(_collider.bounds.center.x, _collider.bounds.min.y, _collider.bounds.center.z);
+
         _forward = transform.forward;
     }
+
     public void Update()
     {
-        _bottom = new Vector3(_transform.gameObject.GetComponent<CapsuleCollider>().bounds.center.x, _transform.gameObject.GetComponent<CapsuleCollider>().bounds.min.y, _transform.gameObject.GetComponent<CapsuleCollider>().bounds.center.z);
+        _top = new Vector3(_collider.bounds.center.x, _collider.bounds.max.y, _collider.bounds.center.z);
+        _center = _collider.bounds.center;
+        _bottom = new Vector3(_collider.bounds.center.x, _collider.bounds.min.y, _collider.bounds.center.z);
         _forward = _transform.forward;
     }
+
     public bool Ground()
     {
-        Collider[] colliders = Physics.OverlapBox(_bottom,
-        new Vector3(_checkRange, 0.05f, _checkRange));
+        Collider[] colliders = Physics.OverlapBox(_bottom, new Vector3(_checkRange, 0.05f, _checkRange));
 
         foreach (Collider collider in colliders)
         {
             if (collider.gameObject != _transform.gameObject)
             {
-                Debug.Log($"Who are you? {collider.gameObject.name}");
+                _closestPoint = collider.ClosestPoint(_transform.position);
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    public bool Ceil()
+    {
+        Collider[] colliders = Physics.OverlapBox(_top, new Vector3(_checkRange, -0.05f, _checkRange));
+
+        foreach (Collider collider in colliders)
+        {
+            if (collider.gameObject != _transform.gameObject)
+            {
                 _closestPoint = collider.ClosestPoint(_transform.position);
                 return true;
             }
@@ -43,8 +83,7 @@ public class CollideCheck
 
     public bool Obstacle()
     {
-        float rayLength = _transform.localScale.y / 2 + _checkRange;
-        if (Physics.Raycast(_bottom, _forward, out RaycastHit hit, rayLength))
+        if (Physics.Raycast(_center, _forward, out RaycastHit hit, _xRayLength))
         {
             if (hit.collider.gameObject != _transform.gameObject)
             {
@@ -59,11 +98,11 @@ public class CollideCheck
 
     public bool Edge()
     {
-        if (Physics.Raycast(_bottom, _forward, out RaycastHit hit1, _checkRange))
+        if (Physics.Raycast(_center, _forward, out RaycastHit hit1, _xRayLength))
         {
             Vector3 endPoint = hit1.point + _forward * _checkRange;
 
-            if (!Physics.Raycast(endPoint, Vector3.down, out RaycastHit _, _checkRange))
+            if (!Physics.Raycast(endPoint, Vector3.down, out RaycastHit _, _yRayLength))
             {
                 return true;
             }
