@@ -331,6 +331,11 @@ public class PlayerController : MonoBehaviour
             EngergyLose(10);
             ProcessRun();
         }
+        else
+        {
+            SpeedMin();
+            ProcessRun();
+        }
 
         Debug.Log($"Dash with speed {playerModel.movement.speed.Curr} and energy {playerModel.energy.Curr}");
     }
