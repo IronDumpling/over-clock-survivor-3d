@@ -35,6 +35,8 @@ public class PlayerController : MonoBehaviour
 
         SubscribeDataEvents();
         SubscribeStateEvents();
+        SubscribeInputEvents();
+
         playerInput.Player.Enable();
     }
 
@@ -58,6 +60,8 @@ public class PlayerController : MonoBehaviour
     {
         DesubscribeDataEvents();
         DesubscribeStateEvents();
+        DesubscribeInputEvents();
+
         playerInput.Player.Disable();
     }
 
@@ -83,12 +87,12 @@ public class PlayerController : MonoBehaviour
 
     #region Level
 
-    public void DownGrade(int amount)
+    public void LevelDown(int amount)
     {
         playerModel.level.Curr -= amount;
     }
 
-    public void Upgrade(int amount)
+    public void LevelUp(int amount)
     {
         playerModel.level.Curr += amount;
     }
@@ -97,79 +101,107 @@ public class PlayerController : MonoBehaviour
 
     #region Health
 
-    public void Damage(int amount)
+    public void HealthDown(int amount)
     {
         playerModel.health.Curr -= amount;
     }
 
-    public void Heal(int amount)
+    public void HealthUp(int amount)
     {
         playerModel.health.Curr += amount;
     }
 
-    public void Reset()
+    public void HealthReset()
     {
-        playerModel.health?.Maximise();
+        playerModel.health.Curr = playerModel.health.Max;
     }
 
     #endregion
 
     #region Speed
 
+    public void SpeedSet(float amount)
+    {
+        playerModel.movement.speed.Curr = amount;
+    }
+
+    public void SpeedXZSet(float amount)
+    {
+        playerModel.movement.speed.SpeedXZ = amount;
+    }
+
+    public void SpeedXSet(float amount)
+    {
+        playerModel.movement.speed.SpeedX = amount;
+    }
+
+    public void SpeedYSet(float amount)
+    {
+        playerModel.movement.speed.SpeedY = amount;
+    }
+
+    public void SpeedZSet(float amount)
+    {
+        playerModel.movement.speed.SpeedZ = amount;
+    }
+
     public void SpeedDown(float amount)
     {
-        playerModel.speed.Curr -= amount;
+        playerModel.movement.speed.Curr -= amount;
     }
 
     public void SpeedUp(float amount)
     {
-        playerModel.speed.Curr += amount;
+        playerModel.movement.speed.Curr += amount;
     }
 
     public void SpeedMax()
     {
-        playerModel.speed?.Maximise();
+        playerModel.movement.speed.Curr = playerModel.movement.speed.Max;
+    }
+
+    public void SpeedMin()
+    {
+        playerModel.movement.speed.Curr = playerModel.movement.speed.Min;
     }
 
     #endregion
 
     #region Energy
 
-    public void LoseEngergy(int amount)
+    public void EngergyLose(int amount)
     {
         playerModel.energy.Curr -= amount;
     }
 
-    public void GainEnergy(int amount)
+    public void EnergyGain(int amount)
     {
         playerModel.energy.Curr += amount;
     }
 
-    public void ResetEnergy()
+    public void EnergyReset()
     {
-        playerModel.energy?.Minimise();
+        playerModel.energy.Curr = playerModel.energy.Min;
     }
 
     #endregion
 
     #region Frequency
 
-    public void DropFreq(float amount)
+    public void FreqDrop(float amount)
     {
         playerModel.freq.Curr -= amount;
     }
 
-    public void RiseFreq(float amount)
+    public void FreqRise(float amount)
     {
         playerModel.freq.Curr += amount;
     }
 
-    public void ResetFreq()
+    public void FreqReset()
     {
-        playerModel.freq?.Maximise();
+        playerModel.freq.Curr = playerModel.freq.Max;
     }
-
-
 
     #endregion
 
@@ -195,14 +227,6 @@ public class PlayerController : MonoBehaviour
         {
             case (int)PlayerStateType.IDLE:
                 break;
-            case (int)PlayerStateType.RUN:
-                break;
-            case (int)PlayerStateType.DASH:
-                break;
-            case (int)PlayerStateType.JUMP:
-                break;
-            case (int)PlayerStateType.PUSH:
-                break;
             default:
                 break;
         }
@@ -210,14 +234,6 @@ public class PlayerController : MonoBehaviour
         switch (toState.m_StateType)
         {
             case (int)PlayerStateType.IDLE:
-                break;
-            case (int)PlayerStateType.RUN:
-                break;
-            case (int)PlayerStateType.DASH:
-                break;
-            case (int)PlayerStateType.JUMP:
-                break;
-            case (int)PlayerStateType.PUSH:
                 break;
             default:
                 break;
@@ -238,9 +254,47 @@ public class PlayerController : MonoBehaviour
         look = playerInput.Player.Look;
     }
 
+    private void SubscribeInputEvents()
+    {
+        run.performed += SpeedXZChanged;
+        dash.performed += SpeedXZChanged;
+        jump.performed += SpeedYChanged;
+        push.performed += SpeedYChanged;
+
+        run.canceled += SpeedXZChanged;
+        dash.canceled += SpeedXZChanged;
+        jump.canceled += SpeedYChanged;
+        push.canceled += SpeedYChanged;
+    }
+
+    private void DesubscribeInputEvents()
+    {
+        run.performed -= SpeedXZChanged;
+        dash.performed -= SpeedXZChanged;
+        jump.performed -= SpeedYChanged;
+        push.performed -= SpeedYChanged;
+
+        run.canceled -= SpeedXZChanged;
+        dash.canceled -= SpeedXZChanged;
+        jump.canceled -= SpeedYChanged;
+        push.canceled -= SpeedYChanged;
+    }
+
+    private void SpeedYChanged(InputAction.CallbackContext context)
+    {
+        SpeedYSet(playerModel.movement.speed.Max);
+    }
+
+    private void SpeedXZChanged(InputAction.CallbackContext context)
+    {
+        SpeedXSet(context.ReadValue<Vector2>().x * playerModel.movement.speed.Curr);
+        SpeedZSet(context.ReadValue<Vector2>().y * playerModel.movement.speed.Curr);
+        SpeedXZSet((Math.Abs(context.ReadValue<Vector2>().x) + Math.Abs(context.ReadValue<Vector2>().y)) * playerModel.movement.speed.Curr);
+    }
+
     private void LoadControl()
     {
-        colCheck = new CollideCheck(transform, playerModel.speed.CheckRange);
+        colCheck = new CollideCheck(transform, playerModel.movement.CheckRange);
         col = transform.gameObject?.GetComponent<Collider>();
         moveDirection = new Vector3();
     }
@@ -256,13 +310,12 @@ public class PlayerController : MonoBehaviour
         moveDirection.Normalize();
 
         if (!colCheck.Ground() || colCheck.Edge(moveDirection) || colCheck.Obstacle(moveDirection))
-        {
             return;
-        }
+        
+        if (playerModel.movement.speed.Curr < 1)
+            SpeedSet(1f);
 
-        if (playerModel.speed.Curr < 1) playerModel.speed.Curr = 1;
-
-        Vector3 moveAmount = playerModel.speed.Curr * Time.deltaTime * moveDirection;
+        Vector3 moveAmount = playerModel.movement.speed.Curr * Time.deltaTime * moveDirection;
         transform.Translate(moveAmount, Space.World);
     }
 
@@ -274,12 +327,12 @@ public class PlayerController : MonoBehaviour
     {
         if(playerModel.energy.Curr >= 0)
         {
-            playerModel.speed.Maximise();
-            playerModel.energy.Curr -= 10;
+            SpeedMax();
+            EngergyLose(10);
             ProcessRun();
         }
 
-        Debug.Log($"Dash with speed {playerModel.speed.Curr} and energy {playerModel.energy.Curr}");
+        Debug.Log($"Dash with speed {playerModel.movement.speed.Curr} and energy {playerModel.energy.Curr}");
     }
 
     #endregion
@@ -288,26 +341,26 @@ public class PlayerController : MonoBehaviour
 
     private void DuringJump()
     {
-        float grav = playerModel.speed.Gravity * playerModel.speed.GravityScale * Time.deltaTime;
+        float grav = playerModel.movement.Gravity * playerModel.movement.GravityScale * Time.deltaTime;
         SpeedUp(grav);
 
-        if (colCheck.Ceil() && playerModel.speed.Curr > 0)
+        if (colCheck.Ceil() && playerModel.movement.speed.Curr > 0)
         {
-            playerModel.speed.Curr = 0;
+            SpeedSet(0);
         }
 
-        if (colCheck.Ground() && playerModel.speed.Curr < 0)
+        if (colCheck.Ground() && playerModel.movement.speed.Curr < 0)
         {
-            playerModel.speed.Curr = 0;
+            SpeedSet(0);
             Vector3 snappedPosition = new(transform.position.x,
-                                          colCheck.ClosestPoint.y + playerModel.speed.CheckRange,
+                                          colCheck.ClosestPoint.y + playerModel.movement.CheckRange,
                                           transform.position.z);
 
             transform.position = snappedPosition;
             inJumping = false;
         }
 
-        transform.Translate(new Vector3(0, playerModel.speed.Curr, 0) * Time.deltaTime);
+        transform.Translate(new Vector3(0, playerModel.movement.speed.Curr, 0) * Time.deltaTime);
     }
 
     private void OnDrawGizmos()
@@ -317,24 +370,24 @@ public class PlayerController : MonoBehaviour
 
         // Ceil
         Gizmos.DrawCube(new Vector3(col.bounds.center.x, col.bounds.max.y, col.bounds.center.z),
-                new Vector3(playerModel.speed.CheckRange, playerModel.speed.CheckRange * -0.5f, playerModel.speed.CheckRange) * 2);
+                new Vector3(playerModel.movement.CheckRange, playerModel.movement.CheckRange * -0.5f, playerModel.movement.CheckRange) * 2);
 
         // Ground
         Gizmos.DrawCube(new Vector3(col.bounds.center.x, col.bounds.min.y, col.bounds.center.z),
-                        new Vector3(playerModel.speed.CheckRange, playerModel.speed.CheckRange * 0.5f, playerModel.speed.CheckRange) * 2);
+                        new Vector3(playerModel.movement.CheckRange, playerModel.movement.CheckRange * 0.5f, playerModel.movement.CheckRange) * 2);
         // Obstacle
         Gizmos.DrawLine(col.bounds.center,
-                        col.bounds.center + moveDirection * (col.bounds.size.x / 2 + playerModel.speed.CheckRange));
+                        col.bounds.center + moveDirection * (col.bounds.size.x / 2 + playerModel.movement.CheckRange));
 
         //Edge
-        Gizmos.DrawLine(col.bounds.center + moveDirection * (col.bounds.size.x / 2 + playerModel.speed.CheckRange),
-                        col.bounds.center + moveDirection * (col.bounds.size.x / 2 + playerModel.speed.CheckRange)
-                        + Vector3.down * (col.bounds.size.y / 2 + playerModel.speed.CheckRange));
+        Gizmos.DrawLine(col.bounds.center + moveDirection * (col.bounds.size.x / 2 + playerModel.movement.CheckRange),
+                        col.bounds.center + moveDirection * (col.bounds.size.x / 2 + playerModel.movement.CheckRange)
+                        + Vector3.down * (col.bounds.size.y / 2 + playerModel.movement.CheckRange));
     }
 
     private void ProcessJump()
     {
-        if(colCheck.Ground()) playerModel.speed.Maximise();
+        if(colCheck.Ground()) SpeedMax();
         inJumping = true;
     }
 

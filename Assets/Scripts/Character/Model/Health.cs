@@ -16,10 +16,4 @@ public class Health : GeneralData<int>
         get => limits;
         set => limits = value;
     }
-
-    public void Maximise()
-    {
-        curr = max;
-        Update();
-    }
 }

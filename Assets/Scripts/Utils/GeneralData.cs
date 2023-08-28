@@ -1,6 +1,4 @@
 using System;
-using System.Reflection;
-using UnityEngine;
 
 public class GeneralData<T> where T : IComparable
 {
@@ -38,7 +36,7 @@ public class GeneralData<T> where T : IComparable
         }
     }
 
-    public void Update()
+    protected virtual void Update()
     {
         Changed?.Invoke();
     }
@@ -50,41 +48,5 @@ public class GeneralData<T> where T : IComparable
         if (value.CompareTo(max) > 0)
             return max;
         return value;
-    }
-}
-
-public interface IAddable<T>
-{
-    T Add(T a, T b);
-}
-
-public interface IMinable<T>
-{
-    T Minus(T a, T b);
-}
-
-public struct IntData : IAddable<int>, IMinable<int>
-{
-    public readonly int Add(int a, int b)
-    {
-        return a + b;
-    }
-
-    public readonly int Minus(int a, int b)
-    {
-        return a - b;
-    }
-}
-
-public struct FloatData : IAddable<float>, IMinable<float>
-{
-    public readonly float Add(float a, float b)
-    {
-        return a + b;
-    }
-
-    public readonly float Minus(float a, float b)
-    {
-        return a - b;
     }
 }

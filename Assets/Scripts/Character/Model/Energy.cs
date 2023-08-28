@@ -19,10 +19,4 @@ public class Energy : GeneralData<int>
         get => limits;
         set => limits = value;
     }
-
-    public void Minimise()
-    {
-        curr = min;
-        Update();
-    }
 }

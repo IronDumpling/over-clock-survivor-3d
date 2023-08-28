@@ -7,7 +7,7 @@ public class Player : MonoBehaviour, IAgent
 
     public Level level;
     public Health health;
-    public Speed speed;
+    public Movement movement;
     public Energy energy;
     public Frequency freq;
 
@@ -18,9 +18,6 @@ public class Player : MonoBehaviour, IAgent
     private State[] states =
     {
         new PlayerIdleState(),
-        new PlayerRunState(),
-        new PlayerJumpState(),
-        new PlayerPushState()
     };
 
     #endregion
@@ -31,7 +28,7 @@ public class Player : MonoBehaviour, IAgent
 
         level = new Level(playerConfig.level);
         health = new Health(playerConfig.health);
-        speed = new Speed(playerConfig.speed);
+        movement = new Movement(playerConfig.speed);
         energy = new Energy(playerConfig.energy);
         freq = new Frequency(playerConfig.frequency);
 
@@ -46,10 +43,6 @@ public class Player : MonoBehaviour, IAgent
 public enum PlayerStateType
 {
     IDLE,
-    RUN,
-    DASH,
-    JUMP,
-    PUSH
 }
 
 public class PlayerIdleState : State
@@ -57,78 +50,6 @@ public class PlayerIdleState : State
     public PlayerIdleState()
     {
         m_StateType = (int)PlayerStateType.IDLE;
-    }
-
-    public override void Enter()
-    {
-        base.Enter();
-    }
-
-    public override State Execute()
-    {
-        return this;
-    }
-}
-
-public class PlayerRunState : State
-{
-    public PlayerRunState()
-    {
-        m_StateType = (int)PlayerStateType.RUN;
-    }
-
-    public override void Enter()
-    {
-        base.Enter();
-    }
-
-    public override State Execute()
-    {
-        return this;
-    }
-}
-
-public class PlayerDashState : State
-{
-    public PlayerDashState()
-    {
-        m_StateType = (int)PlayerStateType.DASH;
-    }
-
-    public override void Enter()
-    {
-        base.Enter();
-    }
-
-    public override State Execute()
-    {
-        return this;
-    }
-}
-
-public class PlayerJumpState : State
-{
-    public PlayerJumpState()
-    {
-        m_StateType = (int)PlayerStateType.JUMP;
-    }
-
-    public override void Enter()
-    {
-        base.Enter();
-    }
-
-    public override State Execute()
-    {
-        return this;
-    }
-}
-
-public class PlayerPushState : State
-{
-    public PlayerPushState()
-    {
-        m_StateType = (int)PlayerStateType.PUSH;
     }
 
     public override void Enter()

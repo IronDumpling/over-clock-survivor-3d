@@ -28,10 +28,4 @@ public class Frequency : GeneralData<float>
         get => upperLimits;
         set => upperLimits = value;
     }
-
-    public void Maximise()
-    {
-        curr = max;
-        Update();
-    }
 }
