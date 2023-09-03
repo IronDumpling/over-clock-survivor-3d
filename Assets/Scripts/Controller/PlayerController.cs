@@ -3,7 +3,6 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.InputSystem;
-using UnityEngine.UIElements;
 
 public class PlayerController : MonoBehaviour
 {
@@ -16,11 +15,8 @@ public class PlayerController : MonoBehaviour
     private InputAction jump;
     private InputAction dash;
     private InputAction push;
-    private InputAction look;
 
     [Header("Control")]
-    private bool inJumping = false;
-    private bool inPushing = false;
     private Collider col;
     private CollideCheck colCheck;
     private Vector3 moveDirection;
@@ -47,10 +43,8 @@ public class PlayerController : MonoBehaviour
         if (dash.IsPressed()) ProcessDash();
 
         if (jump.IsPressed()) ProcessJump();
-        if (inJumping) DuringJump();
 
         //if (push.IsPressed()) ProcessPush();
-        //if (inPushing) DuringPush();
 
         playerModel.StateMachine.Update();
         colCheck.Update();
@@ -251,7 +245,6 @@ public class PlayerController : MonoBehaviour
         jump = playerInput.Player.Jump;
         dash = playerInput.Player.Dash;
         push = playerInput.Player.Push;
-        look = playerInput.Player.Look;
     }
 
     private void SubscribeInputEvents()
@@ -340,11 +333,26 @@ public class PlayerController : MonoBehaviour
         Debug.Log($"Dash with speed {playerModel.movement.speed.Curr} and energy {playerModel.energy.Curr}");
     }
 
+    private IEnumerator Dashing()
+    {
+        // stop jumpling coroutine here
+        yield return new WaitForSeconds(0.5f);
+    }
+
     #endregion
 
     #region Jump
 
-    private void DuringJump()
+    private void ProcessJump()
+    {
+        if (!colCheck.Ground()) return;
+        
+        SpeedMax(); // velocity = Mathf.Sqrt(jumpHeight * -2 * (gravity * gravityScale);)
+        Debug.Log("Jump");
+        Coroutine _ = StartCoroutine(Jumping());
+    }
+
+    private IEnumerator Jumping()
     {
         float grav = playerModel.movement.Gravity * playerModel.movement.GravityScale * Time.deltaTime;
         SpeedUp(grav);
@@ -358,15 +366,29 @@ public class PlayerController : MonoBehaviour
         {
             SpeedSet(0);
             Vector3 snappedPosition = new(transform.position.x,
-                                          colCheck.ClosestPoint.y + playerModel.movement.CheckRange,
-                                          transform.position.z);
+                                            colCheck.ClosestPoint.y + playerModel.movement.CheckRange,
+                                            transform.position.z);
 
             transform.position = snappedPosition;
-            inJumping = false;
+            Debug.Log("End of Jump");
+            yield break;
         }
 
         transform.Translate(new Vector3(0, playerModel.movement.speed.Curr, 0) * Time.deltaTime);
+
+        yield return null; // wait until the next frame
     }
+
+    #endregion
+
+    #region Push
+
+    private void ProcessPush()
+    {
+        Debug.Log("Push!");
+    }
+
+    #endregion
 
     private void OnDrawGizmos()
     {
@@ -389,29 +411,6 @@ public class PlayerController : MonoBehaviour
                         col.bounds.center + moveDirection * (col.bounds.size.x / 2 + playerModel.movement.CheckRange)
                         + Vector3.down * (col.bounds.size.y / 2 + playerModel.movement.CheckRange));
     }
-
-    private void ProcessJump()
-    {
-        if(colCheck.Ground()) SpeedMax();
-        inJumping = true;
-    }
-
-    #endregion
-
-    #region Push
-
-    private void DuringPush()
-    {
-        inPushing = false;
-    }
-
-    private void ProcessPush()
-    {
-        Debug.Log("Push!");
-        inPushing = true;
-    }
-
-    #endregion
 
     #endregion
 }
